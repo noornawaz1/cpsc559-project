@@ -1,54 +1,72 @@
-# React + TypeScript + Vite
+# Client/Frontend Project
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Prerequisites
 
-Currently, two official plugins are available:
+- **Node.js** v16+.
+- **npm** for dependency management
+- [Download both here](https://nodejs.org/en/download)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Getting Started
 
-## Expanding the ESLint configuration
+1. **Install** dependencies. Inside /client run the following command:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. **Start** the development server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
 ```
+npm run dev
+```
+
+This will open the app at http://localhost:5173, which can be visited in your browser.
+
+## Folder Structure
+
+Here's a high level overview of our project layout
+
+```
+client
+├─ public/
+│ └─ (static assets)
+├─ src/
+│ ├─ pages/
+│ │ ├─ Page/
+│ │ │ ├─ Page.tsx
+│ │ │ └─ Page.module.scss
+│ │ │ ...
+│ │ ├─ Components/
+│ │ │ ├─ Component.tsx
+│ │ │ └─ Component.module.scss (optional)
+│ │ │ ...
+│ ├─ services/
+│ │ ├─ api.ts
+│ │ │ ...
+│ ├─ styles/
+│ │ ├─ \_variables.scss
+│ │ └─ global.scss
+│ ├─ App.tsx
+│ ├─ main.tsx
+│ └─ vite-env.d.ts
+├─ .eslintrc.js (or eslint.config.js)
+├─ .prettierrc
+├─ tsconfig.json
+├─ package.json
+└─ vite.config.ts
+```
+
+- **/pages**: Screens (pages) corresponding to routes. Often have corresponding **.scss** file for styling.
+- **/components**: Reusable or route-agnostic components (buttons, toggles, etc.). Often have corresponding **.scss** file for styling.
+- **/services**: Contains **api.ts** (our Axios instance for making HTTP requests) + any other special service files if needed.
+- **/styles**: Contains **global.scss** which is used for anything to be applied to entire app, and **\_variables.scss** which can contain styling variables to be reused.
+- **App.tsx**: Top-level router with route definitions.
+- **main.tsx**: App entry point.
+
+## Scripts
+
+- **npm run dev**: Starts the development server at http://localhost:5173.
+- **npm run build**: Builds for production (output in dist/).
+- **npm run preview**: Locally preview the production build.
+- **npm run lint**: Runs ESLint checks.
+- **npm run format** (if configured with Prettier): Formats your code based on .prettierrc.
