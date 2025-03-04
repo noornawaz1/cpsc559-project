@@ -6,6 +6,7 @@ interface TaskProps {
   id: number;
   name: string;
   isComplete: boolean;
+  deleteTask: (taskId: number) => void;
 }
 
 function Task(props: TaskProps) {
@@ -15,7 +16,7 @@ function Task(props: TaskProps) {
   const [ isComplete, setIsComplete ] = useState(props.isComplete);
   const [ name, setName ] = useState(props.name);
 
-  function toggleComplete(taskId: number) {
+  function toggleComplete() {
     // TODO: for testing, remove
     setIsComplete(isComplete => !isComplete)
 
@@ -60,7 +61,7 @@ function Task(props: TaskProps) {
       <input
           type="checkbox"
           checked={isComplete}
-          onChange={() => toggleComplete(props.id)}
+          onChange={toggleComplete}
       />
       {editing ? (
         <>
@@ -69,18 +70,17 @@ function Task(props: TaskProps) {
             onChange={(e) => setTextInput(e.target.value)}
           />
           <button onClick={handleSave}>Save</button>
-          <button className={styles.deleteButton}>Delete</button>
         </>
       ) : (
         <>
-          <span className={isComplete ? styles.completed : ""}>
-            {name}
-          </span>
-            <button onClick={() => setEditing(true)}>Edit</button>
-            <button className={styles.deleteButton}>Delete</button>
+          <span className={isComplete ? styles.completed : ""}>{name}</span>
+          <button onClick={() => setEditing(true)}>Edit</button>
         </>
       )}
-
+      <button
+          className={styles.deleteButton}
+          onClick={() => props.deleteTask(props.id)}
+      >Delete</button>
     </div>
   )
 }

@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import styles from "./List.module.scss";
 import Task from "./Task.tsx";
+import axios from "axios";
 
 interface Task {
   id: number;
@@ -17,7 +18,6 @@ interface ListResponse {
 
 function List() {
   const { listId } = useParams();
-  const navigate = useNavigate();
 
   const [ listName, setListName ] = useState("");
   const [ listAuthor, setListAuthor ] = useState("");
@@ -44,10 +44,30 @@ function List() {
           {id: 2, name: "task2", isComplete: true}
         ]
     );
-  }, [listId, navigate]);
+  }, [listId]);
 
   if (tasks === undefined) {
     return <h2>404 Not Found</h2>;
+  }
+
+  function deleteTask(taskId: number) {
+
+    // TODO: remove
+    setTasks(prevTasks =>
+      (prevTasks.filter(task => task.id !== taskId))
+    );
+
+    // TODO: uncomment
+    // axios.delete(`/lists/${listId}/task/${taskId}`)
+    // .then(() => {
+    //   setTasks(prevTasks =>
+    //       (prevTasks.filter(task => task.id !== taskId))
+    //   );
+    // })
+    // .catch(() => {
+    //   console.log("Error deleting task");
+    // });
+    // console.log("deleted task")
   }
 
   return (
@@ -64,9 +84,11 @@ function List() {
           <div className={styles.listItems}>
             {tasks.map(task => (
               <Task
+                key = {task.id}
                 id = {task.id}
                 name = {task.name}
                 isComplete={task.isComplete}
+                deleteTask={(id) => deleteTask(id)}
               />
             ))}
           </div>
