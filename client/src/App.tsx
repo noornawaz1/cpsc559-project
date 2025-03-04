@@ -4,6 +4,7 @@ import Register from "./pages/Register/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home/Home";
 import PublicRoute from "./components/PublicRoute";
+import List from "./pages/List/List";
 
 function App() {
   return (
@@ -33,13 +34,21 @@ function App() {
             <PublicRoute>
               <Home />
             </PublicRoute>
-          }
-          /* keeping it public for now, will change when database is set up to authenticate
-          // element={
-          //   <ProtectedRoute>
-          //     <Home />
-          //   </ProtectedRoute>
+            /* keeping it public for now, will change when database is set up to authenticate
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
           */
+          }
+        />
+        {/*unprotected route for now, will change when database is set up to authenticate*/}
+        <Route
+          path="/list"
+          element={
+            <PublicRoute>
+              <List />
+            </PublicRoute>
+          }
         />
         {/*Handle unknown routes with 404 message*/}
         <Route path="*" element={<h2>404 Not Found</h2>} />
