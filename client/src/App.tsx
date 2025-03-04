@@ -30,10 +30,16 @@ function App() {
         <Route
           path="/home"
           element={
-            <ProtectedRoute>
+            <PublicRoute>
               <Home />
-            </ProtectedRoute>
+            </PublicRoute>
           }
+          /* keeping it public for now, will change when database is set up to authenticate
+          // element={
+          //   <ProtectedRoute>
+          //     <Home />
+          //   </ProtectedRoute>
+          */
         />
         {/*Handle unknown routes with 404 message*/}
         <Route path="*" element={<h2>404 Not Found</h2>} />
