@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styles from "./Home.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
+import api from "../../services/api";
 
 // mock Data for Lists & Users
 const mockLists = [
@@ -41,24 +42,51 @@ function Home() {
   const [lists, setLists] = useState(mockLists);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
-
-  const handleEditList = (listId: string) => {
-    navigate(`/list?listId=${listId}`); // TODO: redirect to list page with query params
-  };
-
-  const handleDeleteList = (listId: string, authorId: string) => {
-    const currentUser = localStorage.getItem("userId"); // TODO: logged-in user
-
-    if (currentUser !== authorId) {
-      alert("You do not have permission to delete this list.");
-      return;
+  const handleLogout = async () => {
+    try {
+      const res = await api.post("/auth/logout"); // TODO
+      alert(res.data.message || "Logged out successfully");
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      alert("Logout failed. Please try again.");
     }
+  };
 
-    setLists((prevLists) => prevLists.filter((list) => list.id !== listId)); //TODO: delete list from database
+  const handleEditList = async (listId: string) => {
+    try {
+      const listRes = await api.get(`/lists/${listId}`); // TODO
+      const listAuthorId = listRes.data.author_id;
+      const currentUserId = localStorage.getItem("userId");
+
+      if (currentUserId !== listAuthorId || !currentUserId) {
+        alert("You do not have permission to edit this list.");
+        return;
+      }
+
+      navigate(`/list?listId=${listId}`);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to retrieve list details.");
+    }
+  };
+
+  const handleDeleteList = async (listId: string) => {
+    try {
+      const currentUser = localStorage.getItem("userId");
+      const listRes = await api.get(`/lists/${listId}`);
+      const listAuthorId = listRes.data.author_id;
+      if (currentUser !== listAuthorId || !currentUser) {
+        alert("You do not have permission to delete this list.");
+        return;
+      }
+      const res = await api.delete(`/lists/${listId}`);
+      alert(res.data.message || "List deleted successfully");
+      setLists((prevLists) => prevLists.filter((list) => list.id !== listId));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete the list.");
+    }
   };
 
   return (
@@ -88,7 +116,7 @@ function Home() {
                 </button>
                 <button
                   className={styles.deleteButton}
-                  onClick={() => handleDeleteList(list.id, list.author_id)}
+                  onClick={() => handleDeleteList(list.id)}
                 >
                   <FontAwesomeIcon icon={faTrash} />
                 </button>
