@@ -36,7 +36,8 @@ client
 │ │ │ ├─ Page.tsx
 │ │ │ └─ Page.module.scss
 │ │ │ ...
-│ │ ├─ Components/
+│ ├─ components/
+│ │ ├─ Component/
 │ │ │ ├─ Component.tsx
 │ │ │ └─ Component.module.scss (optional)
 │ │ │ ...
