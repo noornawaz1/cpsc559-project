@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import { useParams } from "react-router-dom";
 import styles from "./List.module.scss";
 import Task from "../../components/List/Task.tsx";
@@ -18,6 +18,9 @@ interface ListResponse {
 }
 
 function List() {
+
+  const modal = useRef<HTMLDialogElement>(null);
+
   const { listId } = useParams();
 
   const [ listName, setListName ] = useState("");
@@ -76,14 +79,17 @@ function List() {
           name: taskName,
           isComplete: false,
         })
-        // update the UI
-        .then((response) => {
-           // TODO: assuming that returns new task id
-          setTasks((prevTasks) => [...prevTasks, {id: response.data.id, name: taskName, isComplete: false}])
+        .then(() => {
+          console.log(`created new task "${taskName}"`)
         })
         .catch(error => {
           console.error("Failed to add task", error);
         });
+    modal.current?.close()
+  }
+
+  function showModal() {
+    modal.current?.showModal()
   }
 
   return (
@@ -108,10 +114,9 @@ function List() {
               />
             ))}
           </div>
-          <button className="add-task">+ Add a task</button>
+          <button className="" onClick={showModal}>+ Add a task</button>
         </div>
-
-        {/*<AddTaskModal addTask={addTask}/>*/}
+        <AddTaskModal ref={modal} addTask={addTask}/>
       </>
   )
 }
