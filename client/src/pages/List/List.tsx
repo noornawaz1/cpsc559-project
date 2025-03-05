@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styles from "./List.module.scss";
-import Task from "./Task.tsx";
+import Task from "../../components/List/Task.tsx";
 import axios from "axios";
+import AddTaskModal from "../../components/List/AddTaskModal.tsx";
 
 interface Task {
   id: number;
@@ -70,6 +71,21 @@ function List() {
     // console.log("deleted task")
   }
 
+  function addTask(taskName: string) {
+    axios.put(`/lists/${listId}/task`, {
+          name: taskName,
+          isComplete: false,
+        })
+        // update the UI
+        .then((response) => {
+           // TODO: assuming that returns new task id
+          setTasks((prevTasks) => [...prevTasks, {id: response.data.id, name: taskName, isComplete: false}])
+        })
+        .catch(error => {
+          console.error("Failed to add task", error);
+        });
+  }
+
   return (
       <>
         <div className={styles.topMenu}>
@@ -94,6 +110,8 @@ function List() {
           </div>
           <button className="add-task">+ Add a task</button>
         </div>
+
+        {/*<AddTaskModal addTask={addTask}/>*/}
       </>
   )
 }
