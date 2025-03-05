@@ -1,0 +1,26 @@
+.deleteButton {
+  color: #FF312E;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: gray;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  background: white;
+  padding: 10px;
+  border: 1px solid grey;
+  justify-content: space-between;
+  box-shadow: rgba(0, 0, 0, 0.15) 2px 2px 2px;
+  overflow:auto;
+
+  button {
+    border: none;
+    background: none;
+    font-weight: bold;
+    font-size: 12pt;
+  }
+}

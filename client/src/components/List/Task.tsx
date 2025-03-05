@@ -1,5 +1,5 @@
 import {useState} from "react";
-import styles from "./List.module.scss";
+import styles from "./Task.module.scss";
 import axios from "axios";
 
 interface TaskProps {
@@ -15,6 +15,8 @@ function Task(props: TaskProps) {
   const [ textInput, setTextInput ] = useState(props.name);
   const [ isComplete, setIsComplete ] = useState(props.isComplete);
   const [ name, setName ] = useState(props.name);
+
+  // TODO: for both calls below - exclude id? different endpoint? patch?
 
   function toggleComplete() {
     // TODO: for testing, remove
