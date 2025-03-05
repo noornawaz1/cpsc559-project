@@ -1,5 +1,6 @@
 package com.cpsc559.server.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -18,6 +19,13 @@ public class TodoList {
 
     @Setter
     private String name;
+
+    // Many-to-one relationship with User
+    @Setter
+    @JsonBackReference
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User author;
 
     // One-to-many relationship with TodoItem
     @Setter

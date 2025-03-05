@@ -2,8 +2,11 @@ package com.cpsc559.server.controller;
 
 import com.cpsc559.server.model.TodoItem;
 import com.cpsc559.server.model.TodoList;
+import com.cpsc559.server.model.User;
 import com.cpsc559.server.repository.TodoListRepository;
+import com.cpsc559.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +14,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/todolists")
 public class TodoListController {
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private TodoListRepository todoListRepository;
@@ -37,6 +43,11 @@ public class TodoListController {
                 item.setTodoList(list);
             }
         }
+
+        String currentUserName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+        list.setAuthor(currentUser);
         return todoListRepository.save(list);
     }
 
@@ -52,6 +63,20 @@ public class TodoListController {
     // DELETE /api/todolists/{id} - delete a list
     @DeleteMapping("/{id}")
     public void deleteList(@PathVariable Long id) {
-        todoListRepository.deleteById(id);
+        TodoList list = todoListRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("TodoList not found"));
+
+        String currentUserName = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByUsername(currentUserName)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+
+        Long currentUserId = currentUser.getId();
+        Long listAuthorId = list.getAuthor().getId();
+        if (listAuthorId.equals(currentUserId)) {
+            todoListRepository.deleteById(id);
+        }
+        else {
+            throw new RuntimeException("Unauthorized to delete this list");
+        }
     }
 }
