@@ -1,6 +1,8 @@
 import {useState} from "react";
 import styles from "./Task.module.scss";
 import axios from "axios";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faPencil, faTrash, faCheck} from "@fortawesome/free-solid-svg-icons";
 
 interface TaskProps {
   id: number;
@@ -64,25 +66,46 @@ function Task(props: TaskProps) {
           type="checkbox"
           checked={isComplete}
           onChange={toggleComplete}
+          className={styles.checkBox}
       />
       {editing ? (
         <>
           <input
             value = {textInput}
             onChange={(e) => setTextInput(e.target.value)}
+            className={styles.taskName}
           />
-          <button onClick={handleSave}>Save</button>
+          <div className={styles.end}>
+            <button
+                className={styles.saveButton + " " + styles.icon}
+                onClick={handleSave}>
+              <FontAwesomeIcon icon={faCheck}/>
+            </button>
+            <button
+                className={styles.deleteButton + " " + styles.icon}
+                onClick={() => props.deleteTask(props.id)}>
+              <FontAwesomeIcon icon={faTrash} />
+            </button>
+          </div>
         </>
       ) : (
         <>
-          <span className={isComplete ? styles.completed : ""}>{name}</span>
-          <button onClick={() => setEditing(true)}>Edit</button>
+          <span className={(isComplete ? styles.completed : "") + " " + styles.taskName}>{name}</span>
+          <div className={styles.end}>
+            <button
+                className={styles.editButton + " " + styles.icon}
+                onClick={() => setEditing(true)}>
+              <FontAwesomeIcon icon={faPencil}/>
+            </button>
+            <button
+                className={styles.deleteButton + " " + styles.icon}
+                onClick={() => props.deleteTask(props.id)}>
+              <FontAwesomeIcon icon={faTrash} />
+            </button>
+          </div>
         </>
       )}
-      <button
-          className={styles.deleteButton}
-          onClick={() => props.deleteTask(props.id)}
-      >Delete</button>
+
     </div>
   )
 }

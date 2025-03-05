@@ -21,7 +21,7 @@ function AddTaskModal(props: AddTaskModalProps) {
           <button type="submit">Create task</button>
         </form>
         <form method="dialog">
-          <button>Nevermind, go back!</button>
+          <button>Cancel</button>
         </form>
       </dialog>
   );

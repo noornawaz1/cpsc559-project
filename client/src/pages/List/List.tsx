@@ -4,6 +4,8 @@ import styles from "./List.module.scss";
 import Task from "../../components/List/Task.tsx";
 import axios from "axios";
 import AddTaskModal from "../../components/List/AddTaskModal.tsx";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 interface Task {
   id: number;
@@ -114,7 +116,10 @@ function List() {
               />
             ))}
           </div>
-          <button className="" onClick={showModal}>+ Add a task</button>
+          <button className={styles.addBtn} onClick={showModal}>
+            <FontAwesomeIcon icon={faPlus} className={styles.iconSpacing} />
+            Add a Task
+          </button>
         </div>
         <AddTaskModal ref={modal} addTask={addTask}/>
       </>

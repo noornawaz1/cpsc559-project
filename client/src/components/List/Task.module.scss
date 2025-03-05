@@ -1,5 +1,49 @@
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-items: left;
+  background: white;
+  padding: 10px;
+  justify-content: space-between;
+  border-radius: 5px;
+  border: none;
+  height: 45px;
+  overflow: hidden;
+
+  button {
+    border: none;
+    background: none;
+    font-weight: bold;
+    //font-size: 12pt;
+  }
+}
+
+.checkBox {
+  width: 20px;
+}
+
+.editButton {
+  color: black;
+  font-size: 16px;
+  align-self: flex-end;
+}
+
+.saveButton {
+  color: #00804f;
+  font-size: 24px;
+}
+
 .deleteButton {
   color: #FF312E;
+  font-size: 16px;
+}
+
+.icon {
+  padding: 2px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  width: 20px;
 }
 
 .completed {
@@ -7,20 +51,16 @@
   color: gray;
 }
 
-.listItem {
-  display: flex;
-  align-items: center;
-  background: white;
-  padding: 10px;
-  border: 1px solid grey;
-  justify-content: space-between;
-  box-shadow: rgba(0, 0, 0, 0.15) 2px 2px 2px;
-  overflow:auto;
+.taskName {
+  text-align: left;
+  width: 80%;
+  margin: 0;
+  padding: 0;
+  font-size: 18px;
+}
 
-  button {
-    border: none;
-    background: none;
-    font-weight: bold;
-    font-size: 12pt;
-  }
+.end {
+  display: flex;
+  width: 50px;
+  gap: 10px;
 }

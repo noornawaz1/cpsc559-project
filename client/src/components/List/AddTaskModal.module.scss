@@ -1,7 +1,7 @@
 .addTaskDialog {
   border: none;
   border-radius: 10px;
-  padding: 20px;
+  padding: 25px;
   margin: 20vh auto;
   width: 30%;
   min-width: 300px;
@@ -13,11 +13,22 @@
 
   input {
     margin: 0 10px;
+    padding: 10px 15px;
+    font-size: 16px;
   }
-}
 
-.addTaskDialog[open] {
-  animation: slide-in-from-top 0.35s ease-out;
+  button {
+    padding: 10px 15px;
+    cursor: pointer;
+    background: white;
+    border: 1px solid black;
+    border-radius: 5px;
+    font-size: 18px;
+  }
+
+  button:hover {
+    background: #e6e6e6;
+  }
 }
 
 .addTaskDialog:not([open]) {
