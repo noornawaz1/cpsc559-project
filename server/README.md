@@ -162,10 +162,28 @@ Swagger UI can be accessed at http://localhost:8080/api/swagger-ui/index.html
 This is basically a tool which allows you to make HTTP requests to this running server and see the responses.
 So, you can test the backend independently of the frontend.
 
-### Example: Getting a to-do list by id
-#### 1) After clicking 'Try it out', fill in any parameters/request body details.
-#### 2) Click Execute
+### Example: Setting up the JWT token
+#### 1) Register a user. Fill in a request body like below and click "Execute". Scroll down to make sure the Response code is 200.
+![img.png](images/swagger-3.png)
+
+#### 2) Login your registered user. Fill in a request body like below and click "Execute".
+![img.png](images/swagger-4.png)
+
+#### 2.1) Scroll down and copy the token in the response.
+![img.png](images/swagger-5.png)
+
+#### 3) Go to the top of the swagger ui page and click "Authorize"
+![img.png](images/swagger-6.png)
+
+#### 4) Paste in the JWT string (without quotes) and click "Authorize". Now every API call will include this token and you should be authenticated for about 24 hours.
+![img.png](images/swagger-7.png)
+
+### Example: API call to get a to-do list by id
+#### 1) Make sure you follow the steps above to set up your JWT token.
+#### 2) For any endpoint, fill in any parameters/request body details.
+#### 3) Click Execute
 ![img.png](images/swagger-1.png)
 
-#### 3) Scroll down to see the response
+#### 4) Scroll down to see the response
 ![img.png](images/swagger-2.png)
+
