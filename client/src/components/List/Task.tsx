@@ -1,13 +1,14 @@
 import {useState} from "react";
 import styles from "./Task.module.scss";
-import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {faPencil, faTrash, faCheck} from "@fortawesome/free-solid-svg-icons";
+import api from "../../services/api.ts";
 
 interface TaskProps {
-  id: number;
+  listId: string;
+  itemId: number;
   name: string;
-  isComplete: boolean;
+  completed: boolean;
   deleteTask: (taskId: number) => void;
 }
 
@@ -15,53 +16,43 @@ function Task(props: TaskProps) {
 
   const [ editing, setEditing ] = useState(false);
   const [ textInput, setTextInput ] = useState(props.name);
-  const [ isComplete, setIsComplete ] = useState(props.isComplete);
+  const [ isComplete, setIsComplete ] = useState(props.completed);
   const [ name, setName ] = useState(props.name);
 
-  // TODO: for both calls below - exclude id? different endpoint? patch?
-
   function toggleComplete() {
-    // TODO: for testing, remove
-    setIsComplete(isComplete => !isComplete)
-
-    // TODO: uncomment
-    // axios.put(`/lists/${props.id}/task`, {
-    //   id: props.id,
-    //   name: props.name,
-    //   isComplete: !isComplete,
-    // })
-    // // update the UI
-    // .then(() => {
-    //   setIsComplete(isComplete => !isComplete)
-    // })
-    // .catch(error => {
-    //   console.error("Failed to update task", error);
-    // });
+    api.put(`/api/todolists/${props.listId}/items/${props.itemId}`, {
+      title: props.name,
+      completed: !isComplete,
+      todoList: props.listId
+    })
+    // update the UI
+    .then(() => {
+      setIsComplete(isComplete => !isComplete)
+    })
+    .catch(error => {
+      console.error("Failed to update task", error);
+    });
   }
 
   function handleSave() {
-    // TODO: for testing, remove
-    setName(textInput);
-
-    // TODO: uncomment
-    // axios.put(`/lists/${props.id}/task`, {
-    //   id: props.id,
-    //   name: textInput,
-    //   isComplete: isComplete,
-    // })
-    // // update the UI
-    // .then(() => {
-    //   setName(textInput);
-    // })
-    // .catch(error => {
-    //   console.error("Failed to update task", error);
-    // });
+    api.put(`/api/todolists/${props.listId}/items/${props.itemId}`, {
+      title: textInput,
+      completed: isComplete,
+      todoList: props.listId
+    })
+    // update the UI
+    .then(() => {
+      setName(textInput);
+    })
+    .catch(error => {
+      console.error("Failed to update task", error);
+    });
 
     setEditing(false);
   }
 
   return (
-    <div key={props.id} className={styles.listItem}>
+    <div key={props.itemId} className={styles.listItem}>
       <input
           type="checkbox"
           checked={isComplete}
@@ -83,7 +74,7 @@ function Task(props: TaskProps) {
             </button>
             <button
                 className={styles.deleteButton + " " + styles.icon}
-                onClick={() => props.deleteTask(props.id)}>
+                onClick={() => props.deleteTask(props.itemId)}>
               <FontAwesomeIcon icon={faTrash} />
             </button>
           </div>
@@ -99,7 +90,7 @@ function Task(props: TaskProps) {
             </button>
             <button
                 className={styles.deleteButton + " " + styles.icon}
-                onClick={() => props.deleteTask(props.id)}>
+                onClick={() => props.deleteTask(props.itemId)}>
               <FontAwesomeIcon icon={faTrash} />
             </button>
           </div>
