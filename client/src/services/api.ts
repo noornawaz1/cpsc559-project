@@ -4,10 +4,10 @@ const api = axios.create({
   baseURL: "http://localhost:8080/api", // should set to actual backend URL (and then proxy when ready)
 });
 
-// Don't need auth header
+// Endpoints that don't need auth
 const authWhitelist = ["/login", "/register"];
 
-// Include token in every request
+// Include token in every request except whitelisted endpoints
 api.interceptors.request.use(
     (config) => {
       const token = localStorage.getItem("token"); // Retrieve token
@@ -15,7 +15,7 @@ api.interceptors.request.use(
       const isWhitelisted = authWhitelist.some(endpoint => config.url?.includes(endpoint));
 
       if (token && !isWhitelisted) {
-        config.headers.Authorization = `Bearer ${token}`;
+        config.headers.Authorization = `Bearer ${token}`; // Add to auth header
       }
       return config;
     },
