@@ -33,6 +33,8 @@ function List() {
   const [ listAuthor, setListAuthor ] = useState("");
   const [ tasks, setTasks ] = useState<Task[]>([]);
 
+  const [ error, setError ] = useState(false);
+
   useEffect(() => {
     api.get<ListResponse>(`/api/todolists/${listId}`)
         .then(response => {
@@ -42,10 +44,11 @@ function List() {
         })
         .catch(() => {
           console.log("Error fetching list");
+          setError(true);
         });
   }, [listId]);
 
-  if ((tasks === undefined) || (listId === undefined))  {
+  if ((error) || (listId === undefined))  {
     return <h2>404 Not Found</h2>;
   }
 
