@@ -31,23 +31,18 @@ function App() {
         <Route
           path="/home"
           element={
-            <PublicRoute>
-              <Home />
-            </PublicRoute>
-            /* keeping it public for now, will change when database is set up to authenticate
             <ProtectedRoute>
               <Home />
             </ProtectedRoute>
-          */
           }
         />
         {/*unprotected route for now, will change when database is set up to authenticate*/}
         <Route
           path="/list"
           element={
-            <PublicRoute>
+            <ProtectedRoute>
               <List />
-            </PublicRoute>
+            </ProtectedRoute>
           }
         />
         {/*Handle unknown routes with 404 message*/}

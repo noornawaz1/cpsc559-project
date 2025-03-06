@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./Home.module.scss";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import api from "../../services/api";
+import NavBar from "../../components/NavBar/NavBar";
 
-// mock Data for Lists & Users
+// Mock Data
 const mockLists = [
   { id: "1", name: "Shopping List", author_id: "101" },
   { id: "2", name: "Work Tasks", author_id: "102" },
@@ -40,30 +41,34 @@ const getUsername = (author_id: string) => {
 
 function Home() {
   const [lists, setLists] = useState(mockLists);
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    try {
-      const res = await api.post("/auth/logout"); // TODO
-      alert(res.data.message || "Logged out successfully");
-      navigate("/");
-    } catch (err) {
-      console.error(err);
-      alert("Logout failed. Please try again.");
-    }
-  };
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const userRes = await api.get("/user/me", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setUserId(userRes.data.userId);
+      } catch (err) {
+        console.error("Failed to retrieve user details.", err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const handleEditList = async (listId: string) => {
     try {
-      const listRes = await api.get(`/lists/${listId}`); // TODO
+      const listRes = await api.get(`/lists/${listId}`);
       const listAuthorId = listRes.data.author_id;
-      const currentUserId = localStorage.getItem("userId");
 
-      if (currentUserId !== listAuthorId || !currentUserId) {
+      if (userId !== listAuthorId || !userId) {
         alert("You do not have permission to edit this list.");
         return;
       }
-
       navigate(`/list?listId=${listId}`);
     } catch (err) {
       console.error(err);
@@ -73,15 +78,14 @@ function Home() {
 
   const handleDeleteList = async (listId: string) => {
     try {
-      const currentUser = localStorage.getItem("userId");
       const listRes = await api.get(`/lists/${listId}`);
       const listAuthorId = listRes.data.author_id;
-      if (currentUser !== listAuthorId || !currentUser) {
+
+      if (userId !== listAuthorId || !userId) {
         alert("You do not have permission to delete this list.");
         return;
       }
-      const res = await api.delete(`/lists/${listId}`);
-      alert(res.data.message || "List deleted successfully");
+      await api.delete(`/lists/${listId}`);
       setLists((prevLists) => prevLists.filter((list) => list.id !== listId));
     } catch (err) {
       console.error(err);
@@ -91,16 +95,9 @@ function Home() {
 
   return (
     <div className={styles.homePage}>
-      <div className={styles.navbar}>
-        <span className={styles.username}>username</span>
-        <button onClick={handleLogout} className={styles.logoutBtn}>
-          Logout
-        </button>
-      </div>
-
+      <NavBar />
       <div className={styles.mainContent}>
         <h2 className={styles.title}>All Lists</h2>
-
         <div className={styles.listContainer}>
           {lists.map((list) => (
             <div key={list.id} className={styles.listItem}>
@@ -114,12 +111,14 @@ function Home() {
                 >
                   <FontAwesomeIcon icon={faPencil} />
                 </button>
-                <button
-                  className={styles.deleteButton}
-                  onClick={() => handleDeleteList(list.id)}
-                >
-                  <FontAwesomeIcon icon={faTrash} />
-                </button>
+                {userId === list.author_id && userId !== null && (
+                  <button
+                    className={styles.deleteButton}
+                    onClick={() => handleDeleteList(list.id)}
+                  >
+                    <FontAwesomeIcon icon={faTrash} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
