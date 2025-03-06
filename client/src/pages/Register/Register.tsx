@@ -62,7 +62,7 @@ function Register() {
 
     try {
       // Send registration request
-      const res = await api.post<RegisterResponse>("/auth/register", {
+      const res = await api.post<RegisterResponse>("/api/auth/register", {
         email,
         username,
         password,
