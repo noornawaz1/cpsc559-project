@@ -107,6 +107,7 @@ function List() {
                 deleteTask={(id) => deleteTask(id)}
               />
             ))}
+            {tasks.length === 0 && <><h4>No tasks yet!</h4><p>Click "Add a Task" below to create a new task</p></>}
           </div>
           <button className={styles.addBtn} onClick={showModal}>
             <FontAwesomeIcon icon={faPlus} className={styles.iconSpacing} />
