@@ -8,8 +8,11 @@ import com.cpsc559.server.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestController
 @RequestMapping("/api/todolists")
@@ -31,7 +34,7 @@ public class TodoListController {
     @GetMapping("/{id}")
     public TodoList getListById(@PathVariable Long id) {
         return todoListRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("TodoList not found"));
+                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "TodoList not found"));
     }
 
     // POST /api/todolists - create a new list
