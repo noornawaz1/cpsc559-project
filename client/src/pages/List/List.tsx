@@ -13,13 +13,9 @@ interface Task {
   completed: boolean;
 }
 
-interface User {
-  username: string;
-}
-
 interface ListResponse {
   name: string;
-  author: User;
+  author: string;
   items: Task[];
 }
 
@@ -39,7 +35,7 @@ function List() {
     api.get<ListResponse>(`/api/todolists/${listId}`)
         .then(response => {
           setListName(response.data.name)
-          // setListAuthor(response.data.author.username) // TODO: endpoint doesn't return author for some reason
+          setListAuthor(response.data.author)
           setTasks(response.data.items);
         })
         .catch(() => {
