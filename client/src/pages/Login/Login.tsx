@@ -20,20 +20,17 @@ function Login() {
 
     try {
       // Get response data (token)
-      const res = await api.post<LoginResponse>("/auth/login", {
-        email,
-        password,
+      const res = await api.post<LoginResponse>("/api/auth/login", {
+        username: email,
+        password: password
       });
       const { token } = res.data;
 
       // Save it to browser storage
       localStorage.setItem("token", token);
 
-      // Add the token to request headers from now on
-      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
       // Go to homepage
-      navigate("/todos");
+      navigate("/home");
     } catch (err) {
       console.error(err);
       alert("Login failed");

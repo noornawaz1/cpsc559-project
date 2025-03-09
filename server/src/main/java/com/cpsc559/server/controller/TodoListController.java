@@ -2,9 +2,11 @@ package com.cpsc559.server.controller;
 
 import com.cpsc559.server.model.TodoItem;
 import com.cpsc559.server.model.TodoList;
+import com.cpsc559.server.model.TodoListResponse;
 import com.cpsc559.server.model.User;
 import com.cpsc559.server.repository.TodoListRepository;
 import com.cpsc559.server.repository.UserRepository;
+import com.cpsc559.server.service.TodoListService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +26,9 @@ public class TodoListController {
     @Autowired
     private TodoListRepository todoListRepository;
 
+    @Autowired
+    private TodoListService todoListService;
+
     // GET /api/todolists - get all lists
     @GetMapping
     public List<TodoList> getAllLists() {
@@ -32,9 +37,8 @@ public class TodoListController {
 
     // GET /api/todolists/{id} - get a specific list by id
     @GetMapping("/{id}")
-    public TodoList getListById(@PathVariable Long id) {
-        return todoListRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "TodoList not found"));
+    public TodoListResponse getListById(@PathVariable Long id) {
+        return todoListService.getTodoListById(id);
     }
 
     // POST /api/todolists - create a new list
