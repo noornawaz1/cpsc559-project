@@ -4,7 +4,8 @@ import Register from "./pages/Register/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home/Home";
 import PublicRoute from "./components/PublicRoute";
-import List from "./pages/List/List";
+import List from "./pages/List/List.tsx";
+import CreateList from "./pages/CreateList/CreateList.tsx";
 
 function App() {
   return (
@@ -36,9 +37,16 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/*unprotected route for now, will change when database is set up to authenticate*/}
         <Route
-          path="/list"
+          path="/create-list"
+          element={
+            <ProtectedRoute>
+              <CreateList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/list/:listId"
           element={
             <ProtectedRoute>
               <List />
