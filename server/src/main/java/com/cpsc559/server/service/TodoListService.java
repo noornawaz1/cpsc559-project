@@ -5,6 +5,9 @@ import com.cpsc559.server.repository.TodoListRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
@@ -19,5 +22,11 @@ public class TodoListService {
         return todoListRepository.findById(id)
                 .map(TodoListResponse::new)
                 .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "TodoList not found"));
+    }
+
+    public List<TodoListResponse> getAllTodoLists() {
+        return todoListRepository.findAll().stream()
+                .map(TodoListResponse::new)
+                .collect(Collectors.toList());
     }
 }

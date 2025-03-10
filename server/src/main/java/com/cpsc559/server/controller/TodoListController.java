@@ -31,8 +31,8 @@ public class TodoListController {
 
     // GET /api/todolists - get all lists
     @GetMapping
-    public List<TodoList> getAllLists() {
-        return todoListRepository.findAll();
+    public List<TodoListResponse> getAllLists() {
+        return todoListService.getAllTodoLists();
     }
 
     // GET /api/todolists/{id} - get a specific list by id
