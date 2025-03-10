@@ -38,18 +38,18 @@ function App() {
           }
         />
         <Route
-            path="/create-list"
-            element={
-              <ProtectedRoute>
-                <CreateList />
-              </ProtectedRoute>
-            }
+          path="/create-list"
+          element={
+            <ProtectedRoute>
+              <CreateList />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/list/:listId"
           element={
             <ProtectedRoute>
-                <List />
+              <List />
             </ProtectedRoute>
           }
         />
