@@ -10,7 +10,7 @@ interface LoginResponse {
 }
 
 function Login() {
-  const [email, setEmail] = useState<string>("");
+  const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
   const navigate = useNavigate();
@@ -21,8 +21,8 @@ function Login() {
     try {
       // Get response data (token)
       const res = await api.post<LoginResponse>("/api/auth/login", {
-        username: email,
-        password: password
+        username: username,
+        password: password,
       });
       const { token } = res.data;
 
@@ -44,9 +44,9 @@ function Login() {
         <form onSubmit={handleSubmit}>
           <input
             type="text"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
           />
           <input
             type="password"
