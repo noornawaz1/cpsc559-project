@@ -6,91 +6,104 @@ import { faPlus, faPencil, faTrash } from "@fortawesome/free-solid-svg-icons";
 import api from "../../services/api";
 import NavBar from "../../components/NavBar/NavBar";
 
-// Mock Data
-const mockLists = [
-  { id: "1", name: "Shopping List", author_id: "101" },
-  { id: "2", name: "Work Tasks", author_id: "102" },
-  { id: "3", name: "Goals", author_id: "103" },
-  { id: "4", name: "Grocery List", author_id: "104" },
-  { id: "5", name: "To-Do List", author_id: "105" },
-  { id: "6", name: "CheckList", author_id: "106" },
-  { id: "7", name: "Study Plans", author_id: "107" },
-  { id: "8", name: "Projects to Start", author_id: "108" },
-  { id: "9", name: "Materials", author_id: "109" },
-  { id: "10", name: "Books to Read", author_id: "101" },
-  { id: "11", name: "Movies to Watch", author_id: "102" },
-  { id: "12", name: "Places to Visit", author_id: "103" },
-];
-
-const mockUsers = [
-  { id: "101", username: "alice" },
-  { id: "102", username: "bob" },
-  { id: "103", username: "charlie" },
-  { id: "104", username: "david" },
-  { id: "105", username: "eve" },
-  { id: "106", username: "frank" },
-  { id: "107", username: "grace" },
-  { id: "108", username: "heidi" },
-  { id: "109", username: "ivan" },
-];
-
-const getUsername = (author_id: string) => {
-  const user = mockUsers.find((user) => user.id === author_id);
-  return user ? user.username : "Unknown User";
-};
+interface UserResponse {
+  id: number;
+  username: string;
+  email: string;
+}
+interface ListResponse {
+  id: number;
+  name: string;
+  author: string;
+}
 
 function Home() {
-  const [lists, setLists] = useState(mockLists);
-  const [userId, setUserId] = useState(null);
+  const [currentUser, setCurrentUser] = useState<UserResponse>();
+  const [lists, setLists] = useState<ListResponse[]>([]);
+  const [error, setError] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const userRes = await api.get("/user/me", {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setUserId(userRes.data.userId);
-      } catch (err) {
-        console.error("Failed to retrieve user details.", err);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  const handleEditList = async (listId: string) => {
-    try {
-      const listRes = await api.get(`/lists/${listId}`);
-      const listAuthorId = listRes.data.author_id;
-
-      if (userId !== listAuthorId || !userId) {
-        alert("You do not have permission to edit this list.");
+    const fetchCurrentUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.log("No auth token found.");
+        setError(true);
         return;
       }
-      navigate(`/list?listId=${listId}`);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to retrieve list details.");
-    }
+
+      try {
+        const response = await api.get<UserResponse>("api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCurrentUser(response.data);
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        setError(true);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchLists = async () => {
+      try {
+        const response = await api.get<ListResponse[]>("/api/todolists");
+        setLists(response.data);
+      } catch (err) {
+        console.error("Error fetching lists:", err);
+        setError(true);
+      }
+    };
+
+    fetchLists();
+  }, []);
+
+  if (error || currentUser === null) {
+    return <h2>404 Not Found</h2>;
+  }
+
+  const handleEditList = async (listId: number) => {
+    // for when we implement sharing
+    // try {
+    //   const listRes = await api.get(`/api/todolists/${listId}`);
+    //   const listAuthor = listRes.data.author;
+
+    //   if (!currentUser || currentUser.username !== listAuthor) {
+    //     alert("You do not have permission to edit this list.");
+    //     return;
+    //   }
+    //   navigate(`/list?listId=${listId}`);
+    // } catch (err) {
+    //   console.error("Failed to retrieve list details:", err);
+    //   alert("Failed to retrieve list details.");
+    //   setError(true);
+    // }
+    navigate(`/list/${listId}`);
   };
 
-  const handleDeleteList = async (listId: string) => {
+  const handleDeleteList = async (listId: number) => {
     try {
-      const listRes = await api.get(`/lists/${listId}`);
-      const listAuthorId = listRes.data.author_id;
+      const listRes = await api.get(`/api/todolists/${listId}`);
+      const listAuthor = listRes.data.author;
 
-      if (userId !== listAuthorId || !userId) {
+      if (!currentUser || currentUser.username !== listAuthor) {
         alert("You do not have permission to delete this list.");
         return;
       }
-      await api.delete(`/lists/${listId}`);
+
+      await api.delete(`/api/todolists/${listId}`);
       setLists((prevLists) => prevLists.filter((list) => list.id !== listId));
     } catch (err) {
-      console.error(err);
+      console.error("Failed to delete the list:", err);
       alert("Failed to delete the list.");
     }
+  };
+
+  const handleCreateList = () => {
+    navigate("/create-list");
   };
 
   return (
@@ -102,7 +115,7 @@ function Home() {
           {lists.map((list) => (
             <div key={list.id} className={styles.listItem}>
               <span>
-                {list.name} <em>(@{getUsername(list.author_id)})</em>
+                {list.name} <em>(@{list.author || "Loading..."})</em>
               </span>
               <div>
                 <button
@@ -111,7 +124,7 @@ function Home() {
                 >
                   <FontAwesomeIcon icon={faPencil} />
                 </button>
-                {userId === list.author_id && userId !== null && (
+                {currentUser?.username === list.author && (
                   <button
                     className={styles.deleteButton}
                     onClick={() => handleDeleteList(list.id)}
@@ -124,7 +137,7 @@ function Home() {
           ))}
         </div>
 
-        <button className={styles.addBtn}>
+        <button className={styles.addBtn} onClick={handleCreateList}>
           <FontAwesomeIcon icon={faPlus} className={styles.iconSpacing} />
           Create a List
         </button>
