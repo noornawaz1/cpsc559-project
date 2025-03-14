@@ -8,5 +8,5 @@ RUN ./gradlew build --no-daemon
 FROM amazoncorretto:17-alpine
 WORKDIR /app
 ENV SPRING_PROFILES_ACTIVE=production
-COPY --from=build /app/build/lib/*.jar app.jar
+COPY --from=build /app/build/libs/*.jar app.jar
 ENTRYPOINT [ "java", "-jar", "/tmp/app.jar" ]
