@@ -6,5 +6,7 @@ RUN ./gradlew build --no-daemon
 
 # Create slim image
 FROM amazoncorretto:17-alpine
-COPY --from=build /app/gradle/wrapper/gradle-wrapper.jar /tmp/app.jar
+WORKDIR /app
+ENV SPRING_PROFILES_ACTIVE=production
+COPY --from=build /app/build/lib/*.jar app.jar
 ENTRYPOINT [ "java", "-jar", "/tmp/app.jar" ]
