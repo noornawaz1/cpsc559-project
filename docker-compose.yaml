@@ -1,0 +1,16 @@
+services:
+  spring-server:
+    image: spring-server:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+    networks:
+      - app-network
+
+networks:
+  app-network:
