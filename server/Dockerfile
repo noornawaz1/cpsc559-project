@@ -1,12 +1,12 @@
 # Build the application
 FROM gradle:8.13.0-jdk17 AS build
-COPY . /app
-WORKDIR /app
+WORKDIR /app/server
+COPY . /app/server
 RUN ./gradlew build --no-daemon -x test
 
 # Create slim image
 FROM amazoncorretto:17-alpine
-WORKDIR /app
+WORKDIR /app/server
 ENV SPRING_PROFILES_ACTIVE=production
-COPY --from=build /app/build/libs/*.jar app.jar
-ENTRYPOINT [ "java", "-jar", "/app/app.jar" ]
+COPY --from=build /app/server/build/libs/*.jar app.jar
+ENTRYPOINT [ "java", "-jar", "/app/server/app.jar" ]
