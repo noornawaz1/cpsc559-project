@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: client-deployment
+  namespace: task-manager
 spec:
   selector:
     matchLabels:
@@ -15,10 +16,10 @@ spec:
       containers:
         - name: client
           image: react-client:latest
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           resources:
             limits:
-              memory: "128Mi"
-              cpu: "500m"
+              memory: "512Mi"
+              cpu: "1"
           ports:
             - containerPort: 5173
