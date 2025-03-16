@@ -29,6 +29,7 @@ public class ProxyController {
     }
 
     // All requests go through here
+    @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
     @RequestMapping("/**")
     public Mono<ResponseEntity<String>> proxyRequest(HttpServletRequest request, @RequestBody(required = false) String body) {
         // Added this in case we add a search bar
@@ -49,8 +50,6 @@ public class ProxyController {
         if (request.getHeader("Authorization") != null) {
             headers.set("Authorization", request.getHeader("Authorization"));
         }
-        // Construct the Http request entity (headers + body)
-        HttpEntity<String> entity = new HttpEntity<>(body, headers);
 
         // Get the HTTP method from the initial request (GET, PUT, POST, DELETE)
         HttpMethod method = HttpMethod.valueOf(request.getMethod());
