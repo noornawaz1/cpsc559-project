@@ -20,6 +20,13 @@ services:
     networks:
       - app-network
 
+  spring-proxy:
+    image: spring-proxy:latest
+    ports:
+      - "8084:8080"
+    networks:
+      - app-network
+
   nginx:
     image: nginx:latest
     ports:

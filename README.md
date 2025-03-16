@@ -4,10 +4,16 @@
 
 First ensure that Docker is installed on your OS. This can be done by downloading the official [Docker Desktop](https://www.docker.com/products/docker-desktop/) if you do not have it yet.
 
+Update your `/etc/hosts` file such that the proxy hostname resolves:
+```bash
+echo "127.0.0.1	spring-proxy" | sudo tee -a /etc/hosts
+```
+
 build the Docker image:
 
 ```bash
 docker build -t spring-server:latest ./server
+docker build -t spring-proxy:latest ./proxy
 ```
 
 Build and run the replicated servers and client:
