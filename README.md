@@ -22,6 +22,7 @@ Build the Docker images for both the server and client:
 
 ```bash
 docker build --no-cache -t spring-server:latest ./server
+docker build --no-cache -t spring-proxy:latest ./proxy
 docker build --no-cache -t react-client:latest ./client
 ```
 
@@ -29,6 +30,7 @@ Load the images into Minikube:
 
 ```bash
 minikube image load spring-server:latest
+minikube image load spring-proxy:latest
 minikube image load react-client:latest
 ```
 
@@ -49,6 +51,7 @@ Just for now, we implement Port-Forwarding for the backend and frontend. Each co
 
 ```bash
 kubectl port-forward service/server-service 30303:30303 -n task-manager
+kubectl port-forward service/proxy-service 30001:8080 -n task-manager
 kubectl port-forward service/client-service 30000:5173 -n task-manager
 ```
 
@@ -62,10 +65,16 @@ Swagger is now accessed at: http://localhost:30303/api/swagger-ui/index.html
 
 First ensure that Docker is installed on your OS. This can be done by downloading the official [Docker Desktop](https://www.docker.com/products/docker-desktop/) if you do not have it yet.
 
+Update your `/etc/hosts` file such that the proxy hostname resolves:
+```bash
+echo "127.0.0.1	spring-proxy" | sudo tee -a /etc/hosts
+```
+
 build the Docker image:
 
 ```bash
 docker build -t spring-server:latest ./server
+docker build -t spring-proxy:latest ./proxy
 ```
 
 Build and run the replicated servers and client:

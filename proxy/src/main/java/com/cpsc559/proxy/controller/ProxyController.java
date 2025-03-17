@@ -66,7 +66,7 @@ public class ProxyController {
         // For write operations, replicate to backup servers (asynchronously)
         // If write operation, replicate to backups
         if (method == HttpMethod.POST || method == HttpMethod.PUT || method == HttpMethod.DELETE) {
-            replicateToBackups(requestPath, queryString, body, headers, method);
+            //replicateToBackups(requestPath, queryString, body, headers, method);
         }
 
         return primaryResponse;
