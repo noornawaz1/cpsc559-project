@@ -20,7 +20,7 @@ spec:
           resources:
             limits:
               memory: "512Mi"
-              cpu: "1"
+              cpu: "0.5"
           env:
             - name: SERVER_PORT
               value: "30303"
