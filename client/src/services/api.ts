@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://proxy-service.task-manager:8080",
+  baseURL: "http://localhost:8079", // Proxy address
 });
 
 // Endpoints that don't need auth

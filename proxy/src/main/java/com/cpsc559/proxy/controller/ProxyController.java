@@ -35,8 +35,8 @@ public class ProxyController {
         // Added this in case we add a search bar
         String queryString = request.getQueryString();
 
-        // Get the full path after "/api/api" ex: /todolists, todolist/{id} ...
-        String requestPath = request.getRequestURI().substring("/api/api".length());
+        // Get the full path after "/api" ex: /todolists, todolist/{id} ...
+        String requestPath = request.getRequestURI().substring("/api".length());
 
         // Construct the correct path to the primary server
         String targetUrl = primaryBackendUrl + requestPath +  (queryString != null ? "?" + queryString : "");
