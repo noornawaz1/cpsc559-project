@@ -22,14 +22,14 @@ This is a Spring Boot backend application for a To-Do list project. It is design
 ./gradlew build
 ```
 
-- To **run** the project run the following command:
+- To **run** the project run the following command, replacing '#' with the instance number
 
 ```
-./gradlew bootRun // For Mac users
-gradle.bat        // For Windows users
+./gradlew bootRun --args='--spring.profiles.active=instance#'   // For Mac/Linux users
+gradle.bat bootRun --args="--spring.profiles.active=instance#"  // For Windows users
 ```
 
-- This will run the project at http://localhost:8080/api/
+- This will run the project at http://localhost:{port}/api/
 
 ## Project Configuration
 - **Gradle (Groovy DSL)** manages dependencies and builds.
@@ -60,8 +60,9 @@ server
 │   │   │           ├── repository                     # JPA repositories
 │   │   │           │   ├── TodoListRepository.java
 │   │   │           │   └── TodoItemRepository.java
-│   │   │           └── security                       # Security configuration
-│   │   │               └── SecurityConfig.java
+│   │   │           ├── security                       # Security configuration
+│   │   │           │   └── SecurityConfig.java
+│   │   │           └── service                        # Service classes 
 │   │   └── resources
 │   │       └── application.properties               # Application configuration
 ├── build.gradle                                     # Gradle build file (Groovy DSL)
