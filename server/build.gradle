@@ -42,4 +42,5 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	systemProperties = System.getProperties() // added so the build command won't fail
 }
