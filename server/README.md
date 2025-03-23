@@ -18,10 +18,10 @@ This is a Spring Boot backend application for a To-Do list project. It is design
 
 ## Getting Started
 
-- To **build** the project run the following command:
+- To **build** the project run the following command, replacing '#' with the instance number
 
 ```
-./gradlew build
+./gradlew build -Dspring.profiles.active=instance#
 ```
 
 - To **run** the project run the following command, replacing '#' with the instance number
@@ -59,15 +59,21 @@ server
 │   │   │           │   ├── TodoListController.java
 │   │   │           │   └── TodoItemController.java
 │   │   │           │   └── HeartbeatController.java
+│   │   │           │   └── ElectionController.java
 │   │   │           ├── model                          # Domain models/entities
 │   │   │           │   ├── TodoList.java
 │   │   │           │   └── TodoItem.java
+│   │   │           ├── message                        # Election algorithm messages
+│   │   │           │   ├── BullyMessage.java
+│   │   │           │   └── ElectionMessage.java
+│   │   │           │   └── LeaderMessage.java
 │   │   │           ├── repository                     # JPA repositories
 │   │   │           │   ├── TodoListRepository.java
 │   │   │           │   └── TodoItemRepository.java
 │   │   │           ├── security                       # Security configuration
 │   │   │           │   └── SecurityConfig.java
 │   │   │           └── service                        # Service classes
+│   │   │               └── ElectionService.java       # Main implementation of the bully election algorithm
 │   │   └── resources
 │   │       └── application.properties               # Application configuration
 ├── build.gradle                                     # Gradle build file (Groovy DSL)
