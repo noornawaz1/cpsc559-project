@@ -23,6 +23,9 @@ public class ElectionService {
 
     private final WebClient webClient;
 
+    @Value("${server.url}")
+    private String serverUrl;
+
     @Value("#{'${server.urls}'.split(',')}")
     private List<String> otherServerUrls;
 
@@ -72,27 +75,36 @@ public class ElectionService {
     }
 
     @Scheduled(fixedRate = 15, timeUnit = TimeUnit.SECONDS)
-    public void reportCurrentTime() {
-        if (leaderUrl == null) {
-            initiateElection();
+    public void heartbeat() {
+        if (!isLeader()) {
+            if (leaderUrl == null) {
+                logger.info("No leader, initiating election.");
+                initiateElection();
+                return;
+            }
+
+            // Sends /health request to the primary
+            String uri = leaderUrl + "/api/health";
+            logger.info("Sending health request to {}", uri);
+
+            // Build the request object and send it
+            webClient.get()
+                    .uri(uri)
+                    .accept(MediaType.ALL)
+                    .retrieve()
+                    .toEntity(String.class)
+                    .timeout(Duration.ofSeconds(5))
+                    .doOnError(e -> {
+                        // Server didn't respond in time - initiate the election process
+                        logger.info("Health check failed, initiating election.");
+                        initiateElection();
+                    })
+                    .subscribe();
         }
+    }
 
-        // Sends /health request to the primary
-        String uri = leaderUrl + "/api/health";
-        logger.info("Sending health request to {}", uri);
-
-        // Build the request object and send it
-        webClient.get()
-                .uri(uri)
-                .accept(MediaType.ALL)
-                .retrieve()
-                .toEntity(String.class)
-                .timeout(Duration.ofSeconds(5))
-                .doOnError(e -> {
-                    // Server didn't respond in time - initiate the election process
-                    logger.info("Health check failed, initiating election.");
-                    initiateElection();
-                })
-                .subscribe();
+    // True if the current server is the leader
+    private boolean isLeader() {
+        return serverUrl.equals(leaderUrl);
     }
 }
