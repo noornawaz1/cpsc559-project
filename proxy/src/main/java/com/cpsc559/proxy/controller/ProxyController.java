@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
+
 @RestController
 public class ProxyController {
 
@@ -22,6 +24,10 @@ public class ProxyController {
     @CrossOrigin(origins = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
     @RequestMapping("/**")
     public Mono<ResponseEntity<String>> proxyRequest(HttpServletRequest request, @RequestBody(required = false) String body) {
+
+    }
+
+    private Mono<ResponseEntity<String>> sendRequest(HttpServletRequest request, Optional<String> body) {
         // Added this in case we add a search bar
         String queryString = request.getQueryString();
 
@@ -53,6 +59,7 @@ public class ProxyController {
                 .retrieve()                                                                     // Send request
                 .toEntity(String.class);                                                        // Parse response
     }
+
 
     // POST /updatePrimary - update which server to point to
     @PostMapping("/updatePrimary")
