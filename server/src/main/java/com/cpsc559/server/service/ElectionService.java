@@ -29,7 +29,7 @@ public class ElectionService {
     // State flags used in the election
     // The 'volatile' keyword ensures updates from one thread, are immediately visible to all other threads.
     private volatile boolean running = false;
-    private volatile String leaderUrl = "http://localhost:8082";
+    private volatile String leaderUrl = null;
 
     public ElectionService(WebClient webClient) {
         this.webClient = webClient;
