@@ -40,6 +40,7 @@ public class ElectionService {
 
     // Our implementation of the Initiate_Election(int i) pseudocode from class
     public void initiateElection() {
+        logger.info("Initiating election.");
         running = true;
 
         // rest of implementation goes here...
@@ -78,8 +79,9 @@ public class ElectionService {
     public void heartbeat() {
         if (!isLeader()) {
             if (leaderUrl == null) {
-                logger.info("No leader, initiating election.");
-                initiateElection();
+                if (!running) {
+                    initiateElection();
+                }
                 return;
             }
 
@@ -96,8 +98,10 @@ public class ElectionService {
                     .timeout(Duration.ofSeconds(5))
                     .doOnError(e -> {
                         // Server didn't respond in time - initiate the election process
-                        logger.info("Health check failed, initiating election.");
-                        initiateElection();
+                        logger.info("Health check failed.");
+                        if (!running) {
+                            initiateElection();
+                        }
                     })
                     .subscribe();
         }
