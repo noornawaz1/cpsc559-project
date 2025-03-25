@@ -18,10 +18,10 @@ This is a Spring Boot backend application for a To-Do list project. It is design
 
 ## Getting Started
 
-- To **build** the project run the following command:
+- To **build** the project run the following command, replacing '#' with the instance number
 
 ```
-./gradlew build
+./gradlew build -Dspring.profiles.active=instance1
 ```
 
 - To **run** the project run the following command, replacing '#' with the instance number
@@ -32,6 +32,7 @@ gradle.bat bootRun --args="--spring.profiles.active=instance#"  // For Windows u
 ```
 
 - This will run the project at http://localhost:{port}/api/
+- Ports will be 8081, 8082, 8083, and 8084
 
 ## Project Configuration
 
@@ -59,15 +60,24 @@ server
 │   │   │           │   ├── TodoListController.java
 │   │   │           │   └── TodoItemController.java
 │   │   │           │   └── HeartbeatController.java
+│   │   │           │   └── ElectionController.java
+│   │   │           │   └── ReplicationController.java
 │   │   │           ├── model                          # Domain models/entities
 │   │   │           │   ├── TodoList.java
 │   │   │           │   └── TodoItem.java
+│   │   │           │   ├── ReplicationRequest.java
+│   │   │           ├── message                        # Election algorithm messages
+│   │   │           │   ├── BullyMessage.java
+│   │   │           │   └── ElectionMessage.java
+│   │   │           │   └── LeaderMessage.java
 │   │   │           ├── repository                     # JPA repositories
 │   │   │           │   ├── TodoListRepository.java
 │   │   │           │   └── TodoItemRepository.java
 │   │   │           ├── security                       # Security configuration
 │   │   │           │   └── SecurityConfig.java
 │   │   │           └── service                        # Service classes
+│   │   │               └── ElectionService.java       # Main implementation of the bully election algorithm
+│   │   │               └── ReplicationService.java    # Leader sends messages to replicas for database write operations
 │   │   └── resources
 │   │       └── application.properties               # Application configuration
 ├── build.gradle                                     # Gradle build file (Groovy DSL)
@@ -154,7 +164,7 @@ public class UserController {
 1. **Start** the application.
 2. In your browser go to http://localhost:8080/api/h2-console
 3. Use the following connection details:
-   - **JDBC URL**: jdbc:h2:file:./data/local_db
+   - **JDBC URL**: jdbc:h2:file:./data/local_db_instance[replication number]
    - **User Name**: sa
    - **Password**: (leave blank)
 4. Click **Connect**
