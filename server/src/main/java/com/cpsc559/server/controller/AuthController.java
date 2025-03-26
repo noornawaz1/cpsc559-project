@@ -18,6 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+ 
     @Autowired
     private UserRepository userRepository;
 
@@ -81,7 +82,6 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
-
     // REPLICATION ENDPOINTS
 
     // POST /api/auth/register - registers a new user on a replica
