@@ -6,10 +6,14 @@ import com.cpsc559.server.message.LeaderMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
@@ -41,46 +45,36 @@ public class ElectionService {
         this.webClient = webClient;
     }
 
-    // Our implementation of the Initiate_Election(int i) pseudocode from class
+    // Initiates the election process
     public void initiateElection() {
         logger.info("Initiating election.");
         running = true;
+        String prevLeader = leaderUrl;
 
         if (hasHighestId()) { // Automatically wins election
             leaderUrl = serverUrl;
             sendLeaderMessage(new LeaderMessage(serverUrl));
         } else {
-            /*
-                Send election message to all other servers with higher ids at /election
-                Wait for T time units
-                If no response (timeout) or recieve 204 from all other servers
-                    leader(i) = i
-                    send leader message at /leader to every other server
-                Otherwise, a bully response (OK) is received
-                    Wait for T’ time units
-                    If leader didn't change
-                        initiateElection()
-             */
+            ElectionMessage electionMessage = new ElectionMessage(serverUrl);
+            boolean bullied = sendElectionMessage(electionMessage);
+
+            if (bullied) {
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException e) {
+                    // Ignore
+                }
+
+                // If leader didn't change, a crash occurred and we need to restart the election
+                if (leaderUrl.equals(prevLeader)) {
+                    initiateElection();
+                }
+                running = false;
+            } else {
+                leaderUrl = serverUrl;
+                sendLeaderMessage(new LeaderMessage(serverUrl));
+            }
         }
-
-        /*
-        initiateElection():
-            running = true
-            If i have the highest id:
-                Send a leader message to all other servers at /leader and /updatePrimary to the proxy
-            Otherwise:
-                Send election message to all other servers with higher ids at /election
-                Wait for T time units
-                If no response (timeout) or recieve 204 from all other servers
-                    leader(i) = i
-                    send leader message at /leader to every other server
-                Otherwise, a bully response (OK) is received
-                    Wait for T’ time units
-                    If leader didn't change
-                        initiateElection()
-         */
-
-        // rest of implementation goes here...
     }
 
     private boolean hasHighestId() {
@@ -92,6 +86,7 @@ public class ElectionService {
     // Case: received message is leader message
     public void onLeaderMessage(LeaderMessage message) {
         leaderUrl = message.getLeaderUrl();
+        logger.info("Received message that {} is the current leader", leaderUrl);
 	    running = false;
     }
 
@@ -100,6 +95,7 @@ public class ElectionService {
         String senderUrl = message.getSenderUrl();
 
         if (senderUrl.compareTo(serverUrl) < 0) {
+            logger.info("Sending bully message to {}", senderUrl);
             BullyMessage bullyMessage = new BullyMessage();
             bullyMessage.setSenderUrl(serverUrl);
 
@@ -114,11 +110,14 @@ public class ElectionService {
         
     }
 
+    // Broadcasts leader message to all other servers & sends update to the proxy
     private void sendLeaderMessage(LeaderMessage message) {
+        logger.info("Elected as leader, sending leader message");
+
         // Send a leader message to all other servers at /leader
-        for (String serverUrl : otherServerUrls) {
+        for (String otherServerUrl : otherServerUrls) {
             webClient.post()
-                    .uri(serverUrl + "/election")
+                    .uri(otherServerUrl + "/api/leader")
                     .bodyValue(message)
                     .retrieve();
         }
@@ -130,9 +129,32 @@ public class ElectionService {
                 .retrieve();
     }
 
-    private void sendElectionMessage(ElectionMessage message) {
+    // Broadcast message to all other servers with greater URLs/ID
+    // Returns true if bullied, false otherwise
+    private boolean sendElectionMessage(ElectionMessage message) {
+        for (String otherServerUrl : otherServerUrls) {
+            // For each server with higher ids
+            if (serverUrl.compareTo(otherServerUrl) < 0) {
+                //Send election message
+                logger.info("Sending election message to {}", otherServerUrl);
+                ClientResponse response = webClient.post()
+                        .uri(otherServerUrl + "/api/election")
+                        .bodyValue(message)
+                        .exchangeToMono(Mono::just)
+                        .timeout(Duration.ofSeconds(5))
+                        .onErrorReturn(ClientResponse.create(HttpStatus.INTERNAL_SERVER_ERROR).build())
+                        .block();
 
-        // used to broadcast message to all other servers with greater URLs/ID [use String.CompareTo()]
+                if (response != null) {
+                    HttpStatusCode status = response.statusCode();
+                    if (status == HttpStatus.OK) {
+                        logger.info("Bullied by {}", otherServerUrl);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     @Scheduled(fixedRate = 15, timeUnit = TimeUnit.SECONDS)
