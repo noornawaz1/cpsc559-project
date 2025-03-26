@@ -50,14 +50,26 @@ public class ElectionService {
     public void onLeaderMessage(LeaderMessage message) {
         String newLeaderUrl = message.getLeaderUrl();
 
-        // rest of implementation goes here...
+	running = false;
     }
 
     // Case: received message is election message
-    public void onElectionMessage(ElectionMessage message) {
+    public BullyMessage onElectionMessage(ElectionMessage message) {
         String senderUrl = message.getSenderUrl();
 
-        // rest of implementation goes here...
+        if (senderUrl.compareTo(serverUrl) < 0) {
+		BullyMessage bullyMessage = new BullyMessage();
+		bullyMessage.setSenderUrl(serverUrl);	
+
+		if (!running) {
+		   initiateElection();
+		} 
+
+		return bullyMessage;
+        }
+
+	   return null;
+        
     }
 
     private void sendLeaderMessage(LeaderMessage message) {
@@ -68,11 +80,6 @@ public class ElectionService {
     private void sendElectionMessage(ElectionMessage message) {
 
         // used to broadcast message to all other servers with greater URLs/ID [use String.CompareTo()]
-    }
-
-    private void sendBullyMessage(BullyMessage message) {
-
-        // used to respond with a bully message
     }
 
     @Scheduled(fixedRate = 15, timeUnit = TimeUnit.SECONDS)
