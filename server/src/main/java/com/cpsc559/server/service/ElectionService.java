@@ -70,10 +70,11 @@ public class ElectionService {
                             }
 
                             // If leader didn't change, a crash occurred and we need to restart the election
-                            //if (leaderUrl.equals(prevLeader)) {
-                            //    initiateElection();
-                            //    return;
-                            //}
+                            if (leaderUrl.equals(prevLeader)) {
+                                logger.info("Leader didn't change");
+                                initiateElection();
+                                return;
+                            }
 
                             running = false;
                         } else {
@@ -85,11 +86,9 @@ public class ElectionService {
     }
 
     private boolean hasHighestId() {
-//        return serverUrl.compareTo(otherServerUrls.get(0)) > 0
-//                && serverUrl.compareTo(otherServerUrls.get(1)) > 0
-//                && serverUrl.compareTo(otherServerUrls.get(2)) > 0;
         return serverUrl.compareTo(otherServerUrls.get(0)) > 0
-                && serverUrl.compareTo(otherServerUrls.get(1)) > 0;
+                && serverUrl.compareTo(otherServerUrls.get(1)) > 0
+                && serverUrl.compareTo(otherServerUrls.get(2)) > 0;
     }
 
     // Case: received message is leader message
