@@ -18,9 +18,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    @Value("${replication.primary:false}")
-    private Boolean primaryServer;
-
     @Autowired
     private UserRepository userRepository;
 
@@ -67,10 +64,8 @@ public class AuthController {
         response.put("username", savedUser.getUsername());
         response.put("email", savedUser.getEmail());
 
-        if (primaryServer){
-          ReplicationService.replicate("POST", "/api/auth/register", user, HttpHeaders.EMPTY);
-        };
-          return ResponseEntity.ok(response);
+        ReplicationService.replicate("POST", "/api/auth/register/replica", user, HttpHeaders.EMPTY);      
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
@@ -86,4 +81,28 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
+
+    // REPLICATION ENDPOINTS
+
+    // POST /api/auth/register - registers a new user on a replica
+    @PostMapping("/register/replica")
+    public ResponseEntity<?> registerReplica(@RequestBody User user) {
+        // Check if username already exists
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            return ResponseEntity.badRequest().body("Username is already taken");
+        }
+
+        // Hash the password before saving
+        String hashedPassword = passwordEncoder.encode(user.getPassword());
+        user.setPassword(hashedPassword);
+
+        User savedUser = userRepository.save(user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", savedUser.getId());
+        response.put("username", savedUser.getUsername());
+        response.put("email", savedUser.getEmail());
+        return ResponseEntity.ok(response);
+    }
+
 }

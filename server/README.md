@@ -21,7 +21,7 @@ This is a Spring Boot backend application for a To-Do list project. It is design
 - To **build** the project run the following command, replacing '#' with the instance number
 
 ```
-./gradlew build -Dspring.profiles.active=instance1
+./gradlew build -Dspring.profiles.active=instance#
 ```
 
 - To **run** the project run the following command, replacing '#' with the instance number
@@ -61,7 +61,6 @@ server
 │   │   │           │   └── TodoItemController.java
 │   │   │           │   └── HeartbeatController.java
 │   │   │           │   └── ElectionController.java
-│   │   │           │   └── ReplicationController.java
 │   │   │           ├── model                          # Domain models/entities
 │   │   │           │   ├── TodoList.java
 │   │   │           │   └── TodoItem.java
@@ -164,7 +163,7 @@ public class UserController {
 1. **Start** the application.
 2. In your browser go to http://localhost:8080/api/h2-console
 3. Use the following connection details:
-   - **JDBC URL**: jdbc:h2:file:./data/local_db_instance[replication number]
+   - **JDBC URL**: jdbc:h2:file:./data/local_db_instance1[replication number]
    - **User Name**: sa
    - **Password**: (leave blank)
 4. Click **Connect**

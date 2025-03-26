@@ -11,7 +11,6 @@ import lombok.Setter;
 public class TodoItem {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
@@ -22,6 +21,13 @@ public class TodoItem {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "todo_list_id")
     private TodoList todoList;
+
+    @PrePersist
+    public void ensureId() {
+        if (this.id == null) {
+            this.id = System.currentTimeMillis();
+        }
+    }
 
     // Default constructor for JPA
     public TodoItem() { }

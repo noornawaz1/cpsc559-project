@@ -1,12 +1,12 @@
 package com.cpsc559.server.service;
 
-import com.cpsc559.server.model.ReplicationRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
@@ -21,31 +21,26 @@ public class ReplicationService {
     private final WebClient webClient = WebClient.builder().build();
 
     public void replicate(String operation, String apiPath, Object body, HttpHeaders headers) {
-        ReplicationRequest replicationRequest = new ReplicationRequest();
-        replicationRequest.setOperation(operation);
-        replicationRequest.setApiPath(apiPath);
-        replicationRequest.setPayload(body);
-        Map<String, String> headerMap = new HashMap<>();
-        headers.forEach((key, values) -> headerMap.put(key, String.join(",", values)));
-        replicationRequest.setHeaders(headerMap);
-
-        // The replication endpoint is the same on all backups
-        String replicationEndpoint = "/api/replication";
 
         Flux.fromArray(backupUrls)
             .parallel()
             .runOn(Schedulers.boundedElastic())
             .flatMap(backupUrl -> {
-                String requestUrl = backupUrl.trim() + replicationEndpoint;
+                String requestUrl = backupUrl.trim() + apiPath;
                 System.out.println("Sending replication request to: " + requestUrl);
-                return webClient.post()
+                return webClient.method(HttpMethod.valueOf(operation))
                         .uri(requestUrl)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(replicationRequest)
+                        .headers(httpHeaders -> httpHeaders.addAll(headers))
+                        .body(body == null ? BodyInserters.empty() : BodyInserters.fromValue(body))
                         .retrieve()
                         .bodyToMono(String.class)
-                        .doOnSuccess(ack -> System.out.println("Received ACK from " + requestUrl + ": " + ack))
-                        .doOnError(err -> System.err.println("Error replicating to " + requestUrl + ": " + err.getMessage()));
+                        .doOnSuccess(ack -> 
+                            System.out.println("Received ACK from " + requestUrl + ": " + ack)
+                        )
+                        .doOnError(err -> 
+                            System.err.println("Error replicating to " + requestUrl + ": " + err.getMessage())
+                        );
             })
             .sequential()
             .collectList()

@@ -19,7 +19,6 @@ import java.util.List;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String username;
@@ -30,4 +29,11 @@ public class User {
     @JsonManagedReference
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TodoList> todoLists = new ArrayList<>();
+
+    @PrePersist
+    public void ensureId() {
+        if (this.id == null) {
+            this.id = System.currentTimeMillis();
+        }
+    }
 }
