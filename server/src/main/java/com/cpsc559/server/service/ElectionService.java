@@ -17,6 +17,8 @@ import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 // Main implementation of the bully election algorithm.
@@ -26,6 +28,7 @@ public class ElectionService {
     private static final Logger logger = LoggerFactory.getLogger(ElectionService.class);
 
     private final WebClient webClient;
+    private final ExecutorService threadpool = Executors.newCachedThreadPool();
 
     @Value("${server.url}")
     private String serverUrl;
@@ -39,7 +42,7 @@ public class ElectionService {
     // State flags used in the election
     // The 'volatile' keyword ensures updates from one thread, are immediately visible to all other threads.
     private volatile boolean running = false;
-    private volatile String leaderUrl = null;
+    private volatile String leaderUrl = "http://localhost:8081";
 
     public ElectionService(WebClient webClient) {
         this.webClient = webClient;
@@ -54,6 +57,7 @@ public class ElectionService {
         if (hasHighestId()) { // Automatically wins election
             leaderUrl = serverUrl;
             sendLeaderMessage(new LeaderMessage(serverUrl));
+
         } else {
             ElectionMessage electionMessage = new ElectionMessage(serverUrl);
             boolean bullied = sendElectionMessage(electionMessage);
@@ -68,8 +72,11 @@ public class ElectionService {
                 // If leader didn't change, a crash occurred and we need to restart the election
                 if (leaderUrl.equals(prevLeader)) {
                     initiateElection();
+                    return;
                 }
+
                 running = false;
+
             } else {
                 leaderUrl = serverUrl;
                 sendLeaderMessage(new LeaderMessage(serverUrl));
@@ -93,6 +100,7 @@ public class ElectionService {
     // Case: received message is election message
     public BullyMessage onElectionMessage(ElectionMessage message) {
         String senderUrl = message.getSenderUrl();
+        logger.info("Received election message from {}", senderUrl);
 
         if (senderUrl.compareTo(serverUrl) < 0) {
             logger.info("Sending bully message to {}", senderUrl);
@@ -100,7 +108,8 @@ public class ElectionService {
             bullyMessage.setSenderUrl(serverUrl);
 
             if (!running) {
-               initiateElection();
+                // initiate election in separate thread
+                threadpool.submit(this::initiateElection);
             }
 
             return bullyMessage;
@@ -127,6 +136,8 @@ public class ElectionService {
                 .uri(proxyUrl + "/updatePrimary")
                 .bodyValue(message)
                 .retrieve();
+
+        running = false;
     }
 
     // Broadcast message to all other servers with greater URLs/ID
@@ -180,7 +191,7 @@ public class ElectionService {
                     .timeout(Duration.ofSeconds(5))
                     .doOnError(e -> {
                         // Server didn't respond in time - initiate the election process
-                        logger.info("Health check failed.");
+                        logger.info("Health check failed. Running = {}", running);
                         if (!running) {
                             initiateElection();
                         }
