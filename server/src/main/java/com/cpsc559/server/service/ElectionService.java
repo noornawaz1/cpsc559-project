@@ -85,9 +85,11 @@ public class ElectionService {
     }
 
     private boolean hasHighestId() {
+//        return serverUrl.compareTo(otherServerUrls.get(0)) > 0
+//                && serverUrl.compareTo(otherServerUrls.get(1)) > 0
+//                && serverUrl.compareTo(otherServerUrls.get(2)) > 0;
         return serverUrl.compareTo(otherServerUrls.get(0)) > 0
-                && serverUrl.compareTo(otherServerUrls.get(1)) > 0
-                && serverUrl.compareTo(otherServerUrls.get(2)) > 0;
+                && serverUrl.compareTo(otherServerUrls.get(1)) > 0;
     }
 
     // Case: received message is leader message
@@ -121,21 +123,31 @@ public class ElectionService {
 
     // Broadcasts leader message to all other servers & sends update to the proxy
     private void sendLeaderMessage(LeaderMessage message) {
-        logger.info("Elected as leader, sending leader message");
+        logger.info("Elected as leader, sending leader messages");
 
         // Send a leader message to all other servers at /leader
         for (String otherServerUrl : otherServerUrls) {
+            logger.info("Sending leader message to {}/api/leader", otherServerUrl);
             webClient.post()
                     .uri(otherServerUrl + "/api/leader")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.ALL)
                     .bodyValue(message)
-                    .retrieve();
+                    .retrieve()
+                    .toBodilessEntity()
+                    .subscribe();;
         }
 
         // Send /updatePrimary to the proxy
+        logger.info("Updating proxy at {}/updatePrimary", proxyUrl);
         webClient.post()
                 .uri(proxyUrl + "/updatePrimary")
-                .bodyValue(message)
-                .retrieve();
+                .contentType(MediaType.TEXT_PLAIN)
+                .accept(MediaType.ALL)
+                .bodyValue(message.getLeaderUrl())
+                .retrieve()
+                .toBodilessEntity()
+                .subscribe();;
 
         running = false;
     }

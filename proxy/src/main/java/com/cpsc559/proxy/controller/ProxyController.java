@@ -2,6 +2,8 @@ package com.cpsc559.proxy.controller;
 
 import com.cpsc559.proxy.config.PropertiesConfig;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -9,6 +11,8 @@ import reactor.core.publisher.Mono;
 
 @RestController
 public class ProxyController {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProxyController.class);
 
     private final WebClient webClient;
     private final PropertiesConfig propertiesConfig;
@@ -58,6 +62,7 @@ public class ProxyController {
     @PostMapping("/updatePrimary")
     public ResponseEntity<?> register(@RequestBody String primaryUrl) {
         // Update the primary url
+        logger.info("Updating primary to {}", primaryUrl);
         propertiesConfig.setUrl(primaryUrl);
         return ResponseEntity.ok().build();
     }
