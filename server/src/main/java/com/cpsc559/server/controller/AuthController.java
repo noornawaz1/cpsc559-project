@@ -65,7 +65,7 @@ public class AuthController {
         response.put("username", savedUser.getUsername());
         response.put("email", savedUser.getEmail());
 
-        ReplicationService.replicate("POST", "/api/auth/register/replica", user, HttpHeaders.EMPTY);      
+        ReplicationService.replicate("POST", "/api/auth/register/replica", savedUser, HttpHeaders.EMPTY);      
         return ResponseEntity.ok(response);
     }
 
@@ -91,10 +91,6 @@ public class AuthController {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username is already taken");
         }
-
-        // Hash the password before saving
-        String hashedPassword = passwordEncoder.encode(user.getPassword());
-        user.setPassword(hashedPassword);
 
         User savedUser = userRepository.save(user);
 
