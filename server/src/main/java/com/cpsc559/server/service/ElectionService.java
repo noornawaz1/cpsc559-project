@@ -7,12 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
@@ -60,27 +60,27 @@ public class ElectionService {
 
         } else {
             ElectionMessage electionMessage = new ElectionMessage(serverUrl);
-            boolean bullied = sendElectionMessage(electionMessage);
+            sendElectionMessage(electionMessage)
+                    .subscribe(bullied -> {
+                        if (bullied) {
+                            try {
+                                TimeUnit.SECONDS.sleep(5);
+                            } catch (InterruptedException e) {
+                                // Ignore
+                            }
 
-            if (bullied) {
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                } catch (InterruptedException e) {
-                    // Ignore
-                }
+                            // If leader didn't change, a crash occurred and we need to restart the election
+                            //if (leaderUrl.equals(prevLeader)) {
+                            //    initiateElection();
+                            //    return;
+                            //}
 
-                // If leader didn't change, a crash occurred and we need to restart the election
-                if (leaderUrl.equals(prevLeader)) {
-                    initiateElection();
-                    return;
-                }
-
-                running = false;
-
-            } else {
-                leaderUrl = serverUrl;
-                sendLeaderMessage(new LeaderMessage(serverUrl));
-            }
+                            running = false;
+                        } else {
+                            leaderUrl = serverUrl;
+                            sendLeaderMessage(new LeaderMessage(serverUrl));
+                        }
+                    });
         }
     }
 
@@ -104,11 +104,11 @@ public class ElectionService {
 
         if (senderUrl.compareTo(serverUrl) < 0) {
             logger.info("Sending bully message to {}", senderUrl);
-            BullyMessage bullyMessage = new BullyMessage();
-            bullyMessage.setSenderUrl(serverUrl);
+            BullyMessage bullyMessage = new BullyMessage(serverUrl);
 
             if (!running) {
                 // initiate election in separate thread
+                logger.info("Not currently running in election");
                 threadpool.submit(this::initiateElection);
             }
 
@@ -142,30 +142,29 @@ public class ElectionService {
 
     // Broadcast message to all other servers with greater URLs/ID
     // Returns true if bullied, false otherwise
-    private boolean sendElectionMessage(ElectionMessage message) {
-        for (String otherServerUrl : otherServerUrls) {
-            // For each server with higher ids
-            if (serverUrl.compareTo(otherServerUrl) < 0) {
-                //Send election message
-                logger.info("Sending election message to {}", otherServerUrl);
-                ClientResponse response = webClient.post()
-                        .uri(otherServerUrl + "/api/election")
-                        .bodyValue(message)
-                        .exchangeToMono(Mono::just)
-                        .timeout(Duration.ofSeconds(5))
-                        .onErrorReturn(ClientResponse.create(HttpStatus.INTERNAL_SERVER_ERROR).build())
-                        .block();
+    private Mono<Boolean> sendElectionMessage(ElectionMessage message) {
+        return Flux.fromIterable(otherServerUrls)  // Convert list of URLs to a Flux stream
+                .filter(otherServerUrl -> serverUrl.compareTo(otherServerUrl) < 0) // Only higher ID servers
+                .flatMap(otherServerUrl -> {
+                    logger.info("Sending election message to {}", otherServerUrl);
 
-                if (response != null) {
-                    HttpStatusCode status = response.statusCode();
-                    if (status == HttpStatus.OK) {
-                        logger.info("Bullied by {}", otherServerUrl);
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+                    return webClient.post()
+                            .uri(otherServerUrl + "/api/election")
+                            .bodyValue(message)
+                            .exchangeToMono(Mono::just)
+                            .timeout(Duration.ofSeconds(5))
+                            .onErrorReturn(ClientResponse.create(HttpStatus.INTERNAL_SERVER_ERROR).build()) // Fallback on error
+                            .map(response -> {
+                                if (response.statusCode() == HttpStatus.OK) {
+                                    logger.info("Bullied by {}", otherServerUrl);
+                                    return true;
+                                }
+                                return false;
+                            });
+                }) // Stream of true & false values
+                .filter(result -> result) // Filters out false
+                .next() // Gets the first element of the stream
+                .defaultIfEmpty(false); // If no trues (no bully messages), return false
     }
 
     @Scheduled(fixedRate = 15, timeUnit = TimeUnit.SECONDS)
