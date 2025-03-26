@@ -3,10 +3,7 @@ package com.cpsc559.server.controller;
 import com.cpsc559.server.model.User;
 import com.cpsc559.server.repository.UserRepository;
 import com.cpsc559.server.security.JwtUtil;
-import com.cpsc559.server.service.ReplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,9 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
-    @Value("${replication.primary:false}")
-    private Boolean primaryServer;
-
+ 
     @Autowired
     private UserRepository userRepository;
 
@@ -29,9 +24,6 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
-
-    @Autowired
-    private ReplicationService ReplicationService;
 
     // GET /api/auth/me - Returns the current authenticated user's details
     @GetMapping("/me")
@@ -66,11 +58,7 @@ public class AuthController {
         response.put("id", savedUser.getId());
         response.put("username", savedUser.getUsername());
         response.put("email", savedUser.getEmail());
-
-        if (primaryServer){
-          ReplicationService.replicate("POST", "/api/auth/register", user, HttpHeaders.EMPTY);
-        };
-          return ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
