@@ -26,6 +26,9 @@ public class ElectionService {
     @Value("${server.url}")
     private String serverUrl;
 
+    @Value("${proxy.url}")
+    private String proxyUrl;
+
     @Value("#{'${server.urls}'.split(',')}")
     private List<String> otherServerUrls;
 
@@ -43,14 +46,53 @@ public class ElectionService {
         logger.info("Initiating election.");
         running = true;
 
+        if (hasHighestId()) { // Automatically wins election
+            leaderUrl = serverUrl;
+            sendLeaderMessage(new LeaderMessage(serverUrl));
+        } else {
+            /*
+                Send election message to all other servers with higher ids at /election
+                Wait for T time units
+                If no response (timeout) or recieve 204 from all other servers
+                    leader(i) = i
+                    send leader message at /leader to every other server
+                Otherwise, a bully response (OK) is received
+                    Wait for T’ time units
+                    If leader didn't change
+                        initiateElection()
+             */
+        }
+
+        /*
+        initiateElection():
+            running = true
+            If i have the highest id:
+                Send a leader message to all other servers at /leader and /updatePrimary to the proxy
+            Otherwise:
+                Send election message to all other servers with higher ids at /election
+                Wait for T time units
+                If no response (timeout) or recieve 204 from all other servers
+                    leader(i) = i
+                    send leader message at /leader to every other server
+                Otherwise, a bully response (OK) is received
+                    Wait for T’ time units
+                    If leader didn't change
+                        initiateElection()
+         */
+
         // rest of implementation goes here...
+    }
+
+    private boolean hasHighestId() {
+        return serverUrl.compareTo(otherServerUrls.get(0)) > 0
+                && serverUrl.compareTo(otherServerUrls.get(1)) > 0
+                && serverUrl.compareTo(otherServerUrls.get(2)) > 0;
     }
 
     // Case: received message is leader message
     public void onLeaderMessage(LeaderMessage message) {
-        String newLeaderUrl = message.getLeaderUrl();
-
-	running = false;
+        leaderUrl = message.getLeaderUrl();
+	    running = false;
     }
 
     // Case: received message is election message
@@ -58,14 +100,14 @@ public class ElectionService {
         String senderUrl = message.getSenderUrl();
 
         if (senderUrl.compareTo(serverUrl) < 0) {
-		BullyMessage bullyMessage = new BullyMessage();
-		bullyMessage.setSenderUrl(serverUrl);	
+            BullyMessage bullyMessage = new BullyMessage();
+            bullyMessage.setSenderUrl(serverUrl);
 
-		if (!running) {
-		   initiateElection();
-		} 
+            if (!running) {
+               initiateElection();
+            }
 
-		return bullyMessage;
+            return bullyMessage;
         }
 
 	   return null;
@@ -73,8 +115,19 @@ public class ElectionService {
     }
 
     private void sendLeaderMessage(LeaderMessage message) {
+        // Send a leader message to all other servers at /leader
+        for (String serverUrl : otherServerUrls) {
+            webClient.post()
+                    .uri(serverUrl + "/election")
+                    .bodyValue(message)
+                    .retrieve();
+        }
 
-        // used to broadcast message to all other servers
+        // Send /updatePrimary to the proxy
+        webClient.post()
+                .uri(proxyUrl + "/updatePrimary")
+                .bodyValue(message)
+                .retrieve();
     }
 
     private void sendElectionMessage(ElectionMessage message) {
