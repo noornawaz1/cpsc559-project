@@ -18,6 +18,9 @@ public class ReplicationService {
     @Value("${server.urls:}")
     private String[] backupUrls;
 
+    @Value("${server.url:}")
+    private String[] currentURL;
+
     private final WebClient webClient = WebClient.builder().build();
 
     public void replicate(String operation, String apiPath, Object body, HttpHeaders headers) {
@@ -36,7 +39,7 @@ public class ReplicationService {
                         .retrieve()
                         .bodyToMono(String.class)
                         .doOnSuccess(ack -> 
-                            System.out.println("Received ACK from " + requestUrl + ": " + ack)
+                            System.out.println("Received ACK from " + requestUrl)
                         )
                         .doOnError(err -> 
                             System.err.println("Error replicating to " + requestUrl + ": " + err.getMessage())

@@ -5,7 +5,6 @@ import com.cpsc559.server.repository.UserRepository;
 import com.cpsc559.server.security.JwtUtil;
 import com.cpsc559.server.service.ReplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
