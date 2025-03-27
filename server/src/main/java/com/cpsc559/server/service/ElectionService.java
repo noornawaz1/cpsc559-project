@@ -95,7 +95,7 @@ public class ElectionService {
     public void onLeaderMessage(LeaderMessage message) {
         leaderUrl = message.getLeaderUrl();
         logger.info("Received message that {} is the current leader", leaderUrl);
-	    running = false;
+	      running = false;
     }
 
     // Case: received message is election message
@@ -116,8 +116,8 @@ public class ElectionService {
             return bullyMessage;
         }
 
-	   return null;
-        
+        return null;
+
     }
 
     // Broadcasts leader message to all other servers & sends update to the proxy
@@ -211,7 +211,7 @@ public class ElectionService {
     }
 
     // True if the current server is the leader
-    private boolean isLeader() {
+    public boolean isLeader() {
         return serverUrl.equals(leaderUrl);
     }
 }

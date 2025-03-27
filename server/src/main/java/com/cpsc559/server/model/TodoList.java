@@ -14,7 +14,8 @@ import java.util.List;
 public class TodoList {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "todo_list_seq")
+    @SequenceGenerator(name = "todo_list_seq", sequenceName = "todo_list_seq", allocationSize = 1)
     private Long id;
 
     @Setter
@@ -34,7 +35,8 @@ public class TodoList {
     private List<TodoItem> items = new ArrayList<>();
 
     // Constructors
-    public TodoList() {}
+    public TodoList() {
+    }
 
     public TodoList(String name) {
         this.name = name;

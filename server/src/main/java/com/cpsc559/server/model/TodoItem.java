@@ -11,7 +11,8 @@ import lombok.Setter;
 public class TodoItem {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "todo_item_seq")
+    @SequenceGenerator(name = "todo_item_seq", sequenceName = "todo_item_seq", allocationSize = 1)
     private Long id;
 
     private String title;
@@ -24,7 +25,8 @@ public class TodoItem {
     private TodoList todoList;
 
     // Default constructor for JPA
-    public TodoItem() { }
+    public TodoItem() {
+    }
 
     // Constructor for convenience
     public TodoItem(String title, boolean completed) {

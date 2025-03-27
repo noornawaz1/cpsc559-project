@@ -15,7 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
- 
+
     @Autowired
     private UserRepository userRepository;
 
@@ -58,6 +58,7 @@ public class AuthController {
         response.put("id", savedUser.getId());
         response.put("username", savedUser.getUsername());
         response.put("email", savedUser.getEmail());
+
         return ResponseEntity.ok(response);
     }
 

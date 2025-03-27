@@ -10,16 +10,12 @@ import com.cpsc559.server.service.TodoListService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestController
 @RequestMapping("/api/todolists")
 public class TodoListController {
-
     @Autowired
     private UserRepository userRepository;
 
@@ -55,14 +51,17 @@ public class TodoListController {
         User currentUser = userRepository.findByUsername(currentUserName)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
         list.setAuthor(currentUser);
+
         return todoListRepository.save(list);
     }
 
     // PUT /api/todolists/{id} - update an existing list
     @PutMapping("/{id}")
     public TodoList updateList(@PathVariable Long id, @RequestBody TodoList listDetails) {
+
         return todoListRepository.findById(id).map(list -> {
             list.setName(listDetails.getName());
+
             return todoListRepository.save(list);
         }).orElseThrow(() -> new RuntimeException("TodoList not found"));
     }
@@ -81,8 +80,7 @@ public class TodoListController {
         Long listAuthorId = list.getAuthor().getId();
         if (listAuthorId.equals(currentUserId)) {
             todoListRepository.deleteById(id);
-        }
-        else {
+        } else {
             throw new RuntimeException("Unauthorized to delete this list");
         }
     }

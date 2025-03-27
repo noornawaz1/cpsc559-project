@@ -44,22 +44,23 @@ public class TodoItemController {
         TodoList list = todoListRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("TodoList not found"));
         item.setTodoList(list);
+
         return todoItemRepository.save(item);
     }
 
     // PUT /api/todolists/{listId}/items/{itemId} - update an existing item in a list
     @PutMapping("/{itemId}")
-    public TodoItem updateItem(@PathVariable Long listId,
-                               @PathVariable Long itemId,
-                               @RequestBody TodoItem itemDetails) {
+    public TodoItem updateItem(@PathVariable Long listId, @PathVariable Long itemId, @RequestBody TodoItem itemDetails) {
         TodoList list = todoListRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("TodoList not found"));
+
         return todoItemRepository.findById(itemId).map(item -> {
             if (!item.getTodoList().getId().equals(list.getId())) {
                 throw new RuntimeException("Item does not belong to the specified list");
             }
             item.setTitle(itemDetails.getTitle());
             item.setCompleted(itemDetails.isCompleted());
+
             return todoItemRepository.save(item);
         }).orElseThrow(() -> new RuntimeException("TodoItem not found"));
     }
@@ -69,6 +70,7 @@ public class TodoItemController {
     public void deleteItem(@PathVariable Long listId, @PathVariable Long itemId) {
         TodoList list = todoListRepository.findById(listId)
                 .orElseThrow(() -> new RuntimeException("TodoList not found"));
+        
         TodoItem item = todoItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("TodoItem not found"));
         if (!item.getTodoList().getId().equals(list.getId())) {
@@ -76,4 +78,5 @@ public class TodoItemController {
         }
         todoItemRepository.delete(item);
     }
+
 }
