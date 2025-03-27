@@ -14,6 +14,8 @@ import java.util.List;
 public class TodoList {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "todo_list_seq")
+    @SequenceGenerator(name = "todo_list_seq", sequenceName = "todo_list_seq", allocationSize = 1)
     private Long id;
 
     @Setter
@@ -32,15 +34,9 @@ public class TodoList {
     @OneToMany(mappedBy = "todoList", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TodoItem> items = new ArrayList<>();
 
-    @PrePersist
-    public void ensureId() {
-        if (this.id == null) {
-            this.id = System.currentTimeMillis();
-        }
-    }
-    
     // Constructors
-    public TodoList() {}
+    public TodoList() {
+    }
 
     public TodoList(String name) {
         this.name = name;

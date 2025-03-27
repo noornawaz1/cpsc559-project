@@ -3,9 +3,7 @@ package com.cpsc559.server.controller;
 import com.cpsc559.server.model.User;
 import com.cpsc559.server.repository.UserRepository;
 import com.cpsc559.server.security.JwtUtil;
-import com.cpsc559.server.service.ReplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,7 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
- 
+
     @Autowired
     private UserRepository userRepository;
 
@@ -26,9 +24,6 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
-
-    @Autowired
-    private ReplicationService ReplicationService;
 
     // GET /api/auth/me - Returns the current authenticated user's details
     @GetMapping("/me")
@@ -64,7 +59,6 @@ public class AuthController {
         response.put("username", savedUser.getUsername());
         response.put("email", savedUser.getEmail());
 
-        ReplicationService.replicate("POST", "/api/auth/register/replica", savedUser, HttpHeaders.EMPTY);      
         return ResponseEntity.ok(response);
     }
 
@@ -81,23 +75,4 @@ public class AuthController {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
     }
-    // REPLICATION ENDPOINTS
-
-    // POST /api/auth/register - registers a new user on a replica
-    @PostMapping("/register/replica")
-    public ResponseEntity<?> registerReplica(@RequestBody User user) {
-        // Check if username already exists
-        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
-            return ResponseEntity.badRequest().body("Username is already taken");
-        }
-
-        User savedUser = userRepository.save(user);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", savedUser.getId());
-        response.put("username", savedUser.getUsername());
-        response.put("email", savedUser.getEmail());
-        return ResponseEntity.ok(response);
-    }
-
 }

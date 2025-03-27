@@ -11,6 +11,8 @@ import lombok.Setter;
 public class TodoItem {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "todo_item_seq")
+    @SequenceGenerator(name = "todo_item_seq", sequenceName = "todo_item_seq", allocationSize = 1)
     private Long id;
 
     private String title;
@@ -22,15 +24,9 @@ public class TodoItem {
     @JoinColumn(name = "todo_list_id")
     private TodoList todoList;
 
-    @PrePersist
-    public void ensureId() {
-        if (this.id == null) {
-            this.id = System.currentTimeMillis();
-        }
-    }
-
     // Default constructor for JPA
-    public TodoItem() { }
+    public TodoItem() {
+    }
 
     // Constructor for convenience
     public TodoItem(String title, boolean completed) {

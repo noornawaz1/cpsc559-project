@@ -32,7 +32,7 @@ public class ElectionService {
     // State flags used in the election
     // The 'volatile' keyword ensures updates from one thread, are immediately visible to all other threads.
     private volatile boolean running = false;
-    private volatile String leaderUrl = null;
+    private volatile String leaderUrl = "http://localhost:8081";
 
     public ElectionService(WebClient webClient) {
         this.webClient = webClient;
@@ -50,7 +50,7 @@ public class ElectionService {
     public void onLeaderMessage(LeaderMessage message) {
         String newLeaderUrl = message.getLeaderUrl();
 
-	running = false;
+        running = false;
     }
 
     // Case: received message is election message
@@ -58,18 +58,18 @@ public class ElectionService {
         String senderUrl = message.getSenderUrl();
 
         if (senderUrl.compareTo(serverUrl) < 0) {
-		BullyMessage bullyMessage = new BullyMessage();
-		bullyMessage.setSenderUrl(serverUrl);	
+            BullyMessage bullyMessage = new BullyMessage();
+            bullyMessage.setSenderUrl(serverUrl);
 
-		if (!running) {
-		   initiateElection();
-		} 
+            if (!running) {
+                initiateElection();
+            }
 
-		return bullyMessage;
+            return bullyMessage;
         }
 
-	   return null;
-        
+        return null;
+
     }
 
     private void sendLeaderMessage(LeaderMessage message) {
@@ -115,7 +115,7 @@ public class ElectionService {
     }
 
     // True if the current server is the leader
-    private boolean isLeader() {
+    public boolean isLeader() {
         return serverUrl.equals(leaderUrl);
     }
 }
