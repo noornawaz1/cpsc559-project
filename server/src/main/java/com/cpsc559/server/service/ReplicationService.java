@@ -108,12 +108,16 @@ public class ReplicationService extends OncePerRequestFilter {
         // Ensure it is not a request to election endpoints /health, /election, /leader
         // or the /login endpoint.
         String requestUri = request.getRequestURI();
+
+        // Ensure it is an api call (not to swagger docs or h2-console)
+        boolean isApiCall = requestUri.contains("api");
+
         boolean isDatabaseOperation = !requestUri.contains("health") &&
                 !requestUri.contains("election") &&
                 !requestUri.contains("leader") &&
                 !requestUri.contains("login");
 
-        // Ensure both are true
-        return isWriteRequest && isDatabaseOperation;
+        // Ensure all are true
+        return isWriteRequest && isApiCall && isDatabaseOperation;
     }
 }
