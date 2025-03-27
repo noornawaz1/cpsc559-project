@@ -35,6 +35,8 @@ public class ProxyController {
         // Construct the correct path to the primary server
         String targetUrl = propertiesConfig.getUrl() + requestPath +  (queryString != null ? "?" + queryString : "");
 
+        logger.info("Forwarding request to primary at: {}", targetUrl);
+
         // Create HTTP headers to forward necessary headers (e.g., Content-Type, Authorization)
         HttpHeaders headers = new HttpHeaders();
         if (request.getContentType() != null) {
