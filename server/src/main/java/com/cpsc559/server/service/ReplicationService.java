@@ -15,6 +15,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
@@ -84,12 +85,15 @@ public class ReplicationService extends OncePerRequestFilter {
                             .body(BodyInserters.fromValue(body))
                             .retrieve()
                             .bodyToMono(String.class)
-                            .doOnSuccess(ack ->
-                                    System.out.println("Received ACK from " + requestUrl)
-                            )
-                            .doOnError(err ->
-                                    System.err.println("Error replicating to " + requestUrl + ": " + err.getMessage())
-                            );
+                            .onErrorResume(err -> {
+                                // Check if the error is due to connection refused
+                                if (err.getMessage() != null && err.getMessage().contains("Connection refused")) {
+                                    System.err.println("Ignoring connection refused error for " + requestUrl);
+                                    return Mono.empty();
+                                }
+                                return Mono.error(err);
+                            })
+                            .doOnSuccess(ack -> System.out.println("Received ACK from " + requestUrl));
                 })
                 .sequential()
                 .collectList()
@@ -104,12 +108,16 @@ public class ReplicationService extends OncePerRequestFilter {
         // Ensure it is not a request to election endpoints /health, /election, /leader
         // or the /login endpoint.
         String requestUri = request.getRequestURI();
+
+        // Ensure it is an api call (not to swagger docs or h2-console)
+        boolean isApiCall = requestUri.contains("api");
+
         boolean isDatabaseOperation = !requestUri.contains("health") &&
                 !requestUri.contains("election") &&
                 !requestUri.contains("leader") &&
                 !requestUri.contains("login");
 
-        // Ensure both are true
-        return isWriteRequest && isDatabaseOperation;
+        // Ensure all are true
+        return isWriteRequest && isApiCall && isDatabaseOperation;
     }
 }
