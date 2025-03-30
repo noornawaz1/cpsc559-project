@@ -6,6 +6,8 @@ import com.cpsc559.server.message.LeaderMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -46,6 +48,13 @@ public class ElectionService {
 
     public ElectionService(WebClient webClient) {
         this.webClient = webClient;
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void initiateElectionOnStartup() {
+        if (!running) {
+            initiateElection();
+        }
     }
 
     // Initiates the election process
@@ -134,7 +143,11 @@ public class ElectionService {
                     .bodyValue(message)
                     .retrieve()
                     .toBodilessEntity()
-                    .subscribe();;
+                    .onErrorResume(e -> {
+                        logger.error("Ignoring connection refused error for {}", otherServerUrl);
+                        return Mono.empty();
+                    })
+                    .subscribe();
         }
 
         // Send /updatePrimary to the proxy
@@ -199,12 +212,13 @@ public class ElectionService {
                     .retrieve()
                     .toEntity(String.class)
                     .timeout(Duration.ofSeconds(5))
-                    .doOnError(e -> {
+                    .onErrorResume(e -> {
                         // Server didn't respond in time - initiate the election process
                         logger.info("Health check failed. Running = {}", running);
                         if (!running) {
                             initiateElection();
                         }
+                        return Mono.empty();
                     })
                     .subscribe();
         }
