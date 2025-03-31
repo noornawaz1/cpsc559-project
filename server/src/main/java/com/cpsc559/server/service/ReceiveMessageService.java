@@ -58,15 +58,15 @@ public class ReceiveMessageService extends OncePerRequestFilter {
             if (currentServerIsPrimary) {
                 filterChain.doFilter(cachingRequest, response);
                 int timestamp = LogicalClock.getAndIncrementTimestamp();
+
                 logger.info("Broadcasting request with timestamp {}", timestamp);
                 forwardToBackups(cachingRequest, timestamp);
 
             } else {
-                String tsString = cachingRequest.getHeader("Update-Timestamp");
-                int timestamp = Integer.parseInt(tsString);
-                logger.info("Received request with timestamp {}", timestamp);
-
+                int timestamp = Integer.parseInt(cachingRequest.getHeader("Update-Timestamp"));
                 UpdateMessage updateMessage = new UpdateMessage(timestamp, cachingRequest);
+
+                logger.info("Received request with timestamp {}, enqueuing", timestamp);
                 updateQueue.enqueue(updateMessage);
             }
         } else {
