@@ -1,9 +1,14 @@
 package com.cpsc559.server.service;
 
+import com.cpsc559.server.message.UpdateMessage;
+import com.cpsc559.server.sync.LogicalClock;
+import com.cpsc559.server.sync.UpdateQueue;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -22,19 +27,23 @@ import java.io.IOException;
 import java.util.Enumeration;
 
 @Service
-public class ReplicationService extends OncePerRequestFilter {
+public class ReceiveMessageService extends OncePerRequestFilter {
+    private static final Logger logger = LoggerFactory.getLogger(ReceiveMessageService.class);
+
     @Value("${server.urls:}")
     private String[] backupUrls;
 
     @Autowired
     private ElectionService electionService;
 
+    @Autowired
+    private UpdateQueue updateQueue;
+
     private final WebClient webClient;
 
-    public ReplicationService(WebClient webClient) {
+    public ReceiveMessageService(WebClient webClient) {
         this.webClient = webClient;
     }
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -42,21 +51,30 @@ public class ReplicationService extends OncePerRequestFilter {
         // Wrap the request so the body can be read multiple times.
         ContentCachingRequestWrapper cachingRequest = new ContentCachingRequestWrapper(request);
 
-        // Process the request normally
-        filterChain.doFilter(cachingRequest, response);
-
-        // Only the primary should replicate write operations
         boolean currentServerIsPrimary = electionService.isLeader();
         boolean requestIsWriteOperation = isWriteOperation(cachingRequest);
 
-        if (currentServerIsPrimary && requestIsWriteOperation) {
-            forwardToBackups(cachingRequest);
-        }
+        if (requestIsWriteOperation) {
+            if (currentServerIsPrimary) {
+                filterChain.doFilter(cachingRequest, response);
+                int timestamp = LogicalClock.getAndIncrementTimestamp();
 
+                logger.info("Broadcasting request with timestamp {}", timestamp);
+                forwardToBackups(cachingRequest, timestamp);
+
+            } else {
+                int timestamp = Integer.parseInt(cachingRequest.getHeader("Update-Timestamp"));
+                UpdateMessage updateMessage = new UpdateMessage(timestamp, cachingRequest);
+
+                logger.info("Received request with timestamp {}, enqueuing", timestamp);
+                updateQueue.enqueue(updateMessage);
+            }
+        } else {
+            filterChain.doFilter(cachingRequest, response);
+        }
     }
 
-
-    public void forwardToBackups(ContentCachingRequestWrapper request) {
+    public void forwardToBackups(ContentCachingRequestWrapper request, int timestamp) {
         // Capture method and path
         String method = request.getMethod();
         String apiPath = request.getRequestURI();
@@ -68,6 +86,8 @@ public class ReplicationService extends OncePerRequestFilter {
             String headerName = headerNames.nextElement();
             headers.add(headerName, request.getHeader(headerName));
         }
+
+        headers.add("Update-Timestamp", String.valueOf(timestamp));
 
         // Extract the request body.
         String body = request.getContentAsString();

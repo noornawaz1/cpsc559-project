@@ -159,6 +159,10 @@ public class ElectionService {
                 .bodyValue(message.getLeaderUrl())
                 .retrieve()
                 .toBodilessEntity()
+                .onErrorResume(e -> {
+                    logger.error("Ignoring connection refused error for {}", proxyUrl);
+                    return Mono.empty();
+                })
                 .subscribe();;
 
         running = false;
