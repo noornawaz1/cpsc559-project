@@ -3,6 +3,7 @@ package com.cpsc559.server.service;
 import com.cpsc559.server.message.UpdateMessage;
 import com.cpsc559.server.sync.LogicalClock;
 import com.cpsc559.server.sync.UpdateQueue;
+import jakarta.servlet.AsyncContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,7 +25,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
-import java.util.Enumeration;
 
 @Service
 public class ReceiveMessageService extends OncePerRequestFilter {
@@ -63,8 +63,16 @@ public class ReceiveMessageService extends OncePerRequestFilter {
                 forwardToBackups(cachingRequest, timestamp);
 
             } else {
+                // Check if asynchronous processing has already been started.
+                AsyncContext asyncContext;
+                if (!cachingRequest.isAsyncStarted()) {
+                    asyncContext = cachingRequest.startAsync();
+                } else {
+                    asyncContext = cachingRequest.getAsyncContext();
+                }
+
                 int timestamp = Integer.parseInt(cachingRequest.getHeader("Update-Timestamp"));
-                UpdateMessage updateMessage = new UpdateMessage(timestamp, cachingRequest);
+                UpdateMessage updateMessage = new UpdateMessage(timestamp, asyncContext);
 
                 logger.info("Received request with timestamp {}, enqueuing", timestamp);
                 updateQueue.enqueue(updateMessage);
@@ -79,14 +87,12 @@ public class ReceiveMessageService extends OncePerRequestFilter {
         String method = request.getMethod();
         String apiPath = request.getRequestURI();
 
-        // Extract headers from the original request
+        // Add the jwt and timestamp header
         HttpHeaders headers = new HttpHeaders();
-        Enumeration<String> headerNames = request.getHeaderNames();
-        while (headerNames.hasMoreElements()) {
-            String headerName = headerNames.nextElement();
-            headers.add(headerName, request.getHeader(headerName));
+        String jwt = request.getHeader("Authorization");
+        if (jwt != null) {
+            headers.add("Authorization", jwt);
         }
-
         headers.add("Update-Timestamp", String.valueOf(timestamp));
 
         // Extract the request body.
@@ -105,15 +111,20 @@ public class ReceiveMessageService extends OncePerRequestFilter {
                             .body(BodyInserters.fromValue(body))
                             .retrieve()
                             .bodyToMono(String.class)
+                            .flatMap(ack -> {
+                                if (ack != null && !ack.isEmpty()) {
+                                    logger.info("Received ACK from {}", requestUrl);
+                                }
+                                return Mono.just(ack);
+                            })
                             .onErrorResume(err -> {
-                                // Check if the error is due to connection refused
                                 if (err.getMessage() != null && err.getMessage().contains("Connection refused")) {
-                                    System.err.println("Ignoring connection refused error for " + requestUrl);
+                                    logger.warn("Connection refused error for {}", requestUrl);
                                     return Mono.empty();
                                 }
+                                logger.error("Replication error for {}: {}", requestUrl, err.getMessage());
                                 return Mono.error(err);
-                            })
-                            .doOnSuccess(ack -> System.out.println("Received ACK from " + requestUrl));
+                            });
                 })
                 .sequential()
                 .collectList()

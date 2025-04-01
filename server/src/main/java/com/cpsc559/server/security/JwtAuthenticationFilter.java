@@ -20,14 +20,16 @@ import java.util.Collections;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+
     @Autowired
     private JwtUtil jwtUtil;
 
     /**
      * Method that checks if the JWT is valid, and sets it in the app security context.
-     * @param request           object representing HTTP request.
-     * @param response          object representing HTTP response.
-     * @param filterChain       object representing a chain of filters.
+     *
+     * @param request     object representing HTTP request.
+     * @param response    object representing HTTP response.
+     * @param filterChain object representing a chain of filters.
      * @throws ServletException
      * @throws IOException
      */
@@ -56,5 +58,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Important: This override needs to be here otherwise the async dispatch in
+     * {@link com.cpsc559.server.service.ApplyUpdateService} will fail JWT filtering.
+     *
+     * @see com.cpsc559.server.service.ApplyUpdateService for usages of AsyncContext
+     */
+    @Override
+    protected boolean shouldNotFilterAsyncDispatch() {
+        return false;
     }
 }
