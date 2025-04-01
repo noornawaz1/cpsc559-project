@@ -16,6 +16,7 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
 import java.util.List;
@@ -44,7 +45,10 @@ public class ElectionService {
     // State flags used in the election
     // The 'volatile' keyword ensures updates from one thread, are immediately visible to all other threads.
     private volatile boolean running = false;
-    private volatile String leaderUrl = "http://localhost:8081";
+    private volatile String leaderUrl;
+    // Promise/signal needed to check if a leader message was received
+    private volatile Sinks.One<String> leaderSignal;
+
 
     public ElectionService(WebClient webClient) {
         this.webClient = webClient;
@@ -61,7 +65,9 @@ public class ElectionService {
     public void initiateElection() {
         logger.info("Initiating election.");
         running = true;
-        String prevLeader = leaderUrl;
+
+        // Reset the sink (leader message received signal) for this election cycle.
+        leaderSignal = Sinks.one();
 
         if (hasHighestId()) { // Automatically wins election
             leaderUrl = serverUrl;
@@ -72,20 +78,17 @@ public class ElectionService {
             sendElectionMessage(electionMessage)
                     .subscribe(bullied -> {
                         if (bullied) {
-                            try {
-                                TimeUnit.SECONDS.sleep(5);
-                            } catch (InterruptedException e) {
-                                // Ignore
-                            }
-
-                            // If leader didn't change, a crash occurred and we need to restart the election
-                            if (leaderUrl.equals(prevLeader)) {
-                                logger.info("Leader didn't change");
-                                initiateElection();
-                                return;
-                            }
-
-                            running = false;
+                            // Wait for a leader message signal, with a timeout.
+                            leaderSignal.asMono()
+                                    .timeout(Duration.ofSeconds(5))
+                                    .doOnError(e -> {
+                                        logger.info("No leader message received within timeout, restarting election.");
+                                        initiateElection();
+                                    })
+                                    .subscribe(leader -> {
+                                        // Leader message was received; do nothing extra here.
+                                        running = false;
+                                    });
                         } else {
                             leaderUrl = serverUrl;
                             sendLeaderMessage(new LeaderMessage(serverUrl));
@@ -104,7 +107,12 @@ public class ElectionService {
     public void onLeaderMessage(LeaderMessage message) {
         leaderUrl = message.getLeaderUrl();
         logger.info("Received message that {} is the current leader", leaderUrl);
-	      running = false;
+        running = false;
+
+        // Complete the signal so that waiting in initiateElection can continue.
+        if (leaderSignal != null) {
+            leaderSignal.tryEmitValue(leaderUrl);
+        }
     }
 
     // Case: received message is election message
@@ -163,7 +171,8 @@ public class ElectionService {
                     logger.error("Ignoring connection refused error for {}", proxyUrl);
                     return Mono.empty();
                 })
-                .subscribe();;
+                .subscribe();
+        ;
 
         running = false;
     }

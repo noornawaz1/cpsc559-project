@@ -15,6 +15,6 @@ public class LogicalClock {
     }
 
     public static synchronized int getAndIncrementTimestamp() {
-        return timestamp++;
+        return ++timestamp;
     }
 }

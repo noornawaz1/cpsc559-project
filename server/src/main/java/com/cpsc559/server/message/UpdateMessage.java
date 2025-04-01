@@ -1,16 +1,17 @@
 package com.cpsc559.server.message;
 
+import jakarta.servlet.AsyncContext;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
+
 
 @Getter
 @Setter
 @AllArgsConstructor
 public class UpdateMessage implements Comparable<UpdateMessage> {
     private int timestamp;
-    private ContentCachingRequestWrapper request;
+    private AsyncContext asyncContext;
 
     @Override
     public int compareTo(UpdateMessage updateMessage) {
