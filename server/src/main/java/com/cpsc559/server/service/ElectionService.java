@@ -98,9 +98,7 @@ public class ElectionService {
     }
 
     private boolean hasHighestId() {
-        return serverUrl.compareTo(otherServerUrls.get(0)) > 0
-                && serverUrl.compareTo(otherServerUrls.get(1)) > 0
-                && serverUrl.compareTo(otherServerUrls.get(2)) > 0;
+        return otherServerUrls.stream().allMatch(url -> serverUrl.compareTo(url) > 0);
     }
 
     // Case: received message is leader message
