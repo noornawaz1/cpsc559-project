@@ -1,4 +1,6 @@
 package com.cpsc559.server.controller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.cpsc559.server.model.User;
 import com.cpsc559.server.repository.UserRepository;
@@ -12,9 +14,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
-@RestController
+@RestController    
 @RequestMapping("/auth")
 public class AuthController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -43,8 +46,10 @@ public class AuthController {
     // POST /api/auth/register - registers a new user
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
+        logger.info("Received registration request for username: {}", user.getUsername());
         // Check if username already exists
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            logger.warn("Registration failed: Username {} is already taken", user.getUsername());
             return ResponseEntity.badRequest().body("Username is already taken");
         }
 
@@ -52,6 +57,7 @@ public class AuthController {
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
 
+        logger.info("Saving new user with username: {}", user.getUsername());
         User savedUser = userRepository.save(user);
 
         Map<String, Object> response = new HashMap<>();

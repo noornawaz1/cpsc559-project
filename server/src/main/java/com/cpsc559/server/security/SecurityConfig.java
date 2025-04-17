@@ -27,7 +27,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Disable CSRF (needed for H2 console)
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)) // Allow H2 Console to be embedded
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("api/auth/**","/api/updatePrimary","/api/api/election/**", "/api/api/leader/**", "api/h2-console/**", "api/swagger-ui/**", "api/v3/api-docs/**", "api/error", "/api/api/health").permitAll()
+                        .requestMatchers("/api/auth/**", "/auth/**", "/updatePrimary", "/api/updatePrimary", "/election/**", "/api/election/**", "/api/leader/**","/leader/**", "/api/h2-console/**", "/api/swagger-ui/**", "/api/v3/api-docs/**", "/api/error", "/api/health", "/api/api/health").permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable);
