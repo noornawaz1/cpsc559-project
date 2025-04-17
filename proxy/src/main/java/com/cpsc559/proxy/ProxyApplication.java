@@ -1,7 +1,6 @@
 package com.cpsc559.proxy;
 
 import com.cpsc559.proxy.config.PropertiesConfig;
-import com.cpsc559.proxy.controller.ProxyController;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

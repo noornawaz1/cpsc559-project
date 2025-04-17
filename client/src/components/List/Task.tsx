@@ -20,7 +20,7 @@ function Task(props: TaskProps) {
   const [ name, setName ] = useState(props.name);
 
   function toggleComplete() {
-    api.put(`/api/todolists/${props.listId}/items/${props.itemId}`, {
+    api.put(`/todolists/${props.listId}/items/${props.itemId}`, {
       title: props.name,
       completed: !isComplete,
       todoList: props.listId
@@ -35,7 +35,7 @@ function Task(props: TaskProps) {
   }
 
   function handleSave() {
-    api.put(`/api/todolists/${props.listId}/items/${props.itemId}`, {
+    api.put(`/todolists/${props.listId}/items/${props.itemId}`, {
       title: textInput,
       completed: isComplete,
       todoList: props.listId

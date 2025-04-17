@@ -141,9 +141,9 @@ public class ElectionService {
 
         // Send a leader message to all other servers at /leader
         for (String otherServerUrl : otherServerUrls) {
-            logger.info("Sending leader message to {}/api/leader", otherServerUrl);
+            logger.info("Sending leader message to {}/leader", otherServerUrl);
             webClient.post()
-                    .uri(otherServerUrl + "/api/leader")
+                    .uri(otherServerUrl + "/leader")
                     .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.ALL)
                     .bodyValue(message)
@@ -184,7 +184,7 @@ public class ElectionService {
                     logger.info("Sending election message to {}", otherServerUrl);
 
                     return webClient.post()
-                            .uri(otherServerUrl + "/api/election")
+                            .uri(otherServerUrl + "/election")
                             .bodyValue(message)
                             .exchangeToMono(Mono::just)
                             .timeout(Duration.ofSeconds(5))
@@ -213,7 +213,7 @@ public class ElectionService {
             }
 
             // Sends /health request to the primary
-            String uri = leaderUrl + "/api/health";
+            String uri = leaderUrl + "/health";
             logger.info("Sending health request to {}", uri);
 
             // Build the request object and send it

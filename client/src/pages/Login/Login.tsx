@@ -20,7 +20,7 @@ function Login() {
 
     try {
       // Get response data (token)
-      const res = await api.post<LoginResponse>("/api/auth/login", {
+      const res = await api.post<LoginResponse>("/auth/login", {
         username: username,
         password: password,
       });

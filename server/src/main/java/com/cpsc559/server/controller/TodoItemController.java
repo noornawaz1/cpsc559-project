@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/todolists/{listId}/items")
+@RequestMapping("/todolists/{listId}/items")
 public class TodoItemController {
 
     @Autowired

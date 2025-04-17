@@ -50,7 +50,7 @@ function Home() {
   useEffect(() => {
     const fetchLists = async () => {
       try {
-        const response = await api.get<ListResponse[]>("/api/todolists");
+        const response = await api.get<ListResponse[]>("/todolists");
         setLists(response.data);
       } catch (err) {
         console.error("Error fetching lists:", err);
@@ -86,7 +86,7 @@ function Home() {
 
   const handleDeleteList = async (listId: number) => {
     try {
-      const listRes = await api.get(`/api/todolists/${listId}`);
+      const listRes = await api.get(`/todolists/${listId}`);
       const listAuthor = listRes.data.author;
 
       if (!currentUser || currentUser.username !== listAuthor) {
@@ -94,7 +94,7 @@ function Home() {
         return;
       }
 
-      await api.delete(`/api/todolists/${listId}`);
+      await api.delete(`/todolists/${listId}`);
       setLists((prevLists) => prevLists.filter((list) => list.id !== listId));
     } catch (err) {
       console.error("Failed to delete the list:", err);

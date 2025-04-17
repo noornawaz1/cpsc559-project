@@ -49,7 +49,7 @@ function CreateList() {
   }
 
   function createList() {
-    api.post(`/api/todolists`, {
+    api.post(`/todolists`, {
       name: listName,
       items: tasks
     })

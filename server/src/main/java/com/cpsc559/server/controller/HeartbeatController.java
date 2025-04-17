@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 @RestController
 public class HeartbeatController {
 
-    @GetMapping("/api/health")
+    @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("ACK");
     }

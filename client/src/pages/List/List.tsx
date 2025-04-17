@@ -32,7 +32,7 @@ function List() {
 
   useEffect(() => {
     api
-      .get<ListResponse>(`/api/todolists/${listId}`)
+      .get<ListResponse>(`/todolists/${listId}`)
       .then((response) => {
         setListName(response.data.name);
         setListAuthor(response.data.author);
@@ -50,7 +50,7 @@ function List() {
 
   function deleteTask(taskId: number) {
     api
-      .delete(`/api/todolists/${listId}/items/${taskId}`)
+      .delete(`/todolists/${listId}/items/${taskId}`)
       .then(() => {
         setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
       })
@@ -62,7 +62,7 @@ function List() {
 
   function addTask(taskName: string) {
     api
-      .post(`/api/todolists/${listId}/items`, {
+      .post(`/todolists/${listId}/items`, {
         title: taskName,
         completed: false,
         todoList: listId,
